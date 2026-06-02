@@ -1,6 +1,6 @@
 genlayer-py @ git+https://github.com/genlayerlabs/genlayer-py@feat/release-flow-v018
 genlayer-test @ git+https://github.com/genlayerlabs/genlayer-testing-suite@codex/genvm-artifacts-fees
-genvm-linter @ git+https://github.com/genlayerlabs/genvm-linter@codex/genvm-artifact-resolution
+genvm-linter @ git+https://github.com/genlayerlabs/genvm-linter@main
 requests>=2.31.0
 python-dotenv>=1.0.1
 eth-account>=0.13.3

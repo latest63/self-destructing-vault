@@ -38,7 +38,31 @@ export function getStudioUrl(): string {
 }
 
 /**
- * Get the contract address from environment variables
+ * Get the vault contract address from environment variables
+ */
+export function getVaultContractAddress(): string {
+  const address = process.env.NEXT_PUBLIC_VAULT_CONTRACT;
+  if (!address) {
+    // Return empty string during build, error will be shown in UI during runtime
+    return "";
+  }
+  return address;
+}
+
+/**
+ * Get the condition contract address from environment variables
+ */
+export function getConditionContractAddress(): string {
+  const address = process.env.NEXT_PUBLIC_CONDITION_CONTRACT;
+  if (!address) {
+    // Return empty string during build, error will be shown in UI during runtime
+    return "";
+  }
+  return address;
+}
+
+/**
+ * Get the contract address from environment variables (legacy - for backward compatibility)
  */
 export function getContractAddress(): string {
   const address = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;

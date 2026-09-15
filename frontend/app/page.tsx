@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
-import { BetsTable } from "@/components/BetsTable";
-import { Leaderboard } from "@/components/Leaderboard";
+import { VaultList } from "@/components/VaultList";
+import { CreateVaultModal } from "@/components/CreateVaultModal";
+import { WalletConnectButton } from "@/components/WalletConnectButton";
 
 export default function HomePage() {
   return (
@@ -16,26 +18,24 @@ export default function HomePage() {
           {/* Hero Section */}
           <div className="text-center mb-8 animate-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              Football Prediction Betting
+              Self-Destructing Vault
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              AI-powered football match predictions on GenLayer blockchain.
+              Funds that release or return themselves based on conditions.
               <br />
-              Create bets, make predictions, and compete for points.
+              Create vaults, deposit funds, and let smart contracts handle the rest.
             </p>
           </div>
 
-          {/* Main Grid Layout - 2/1 columns on desktop, stacked on mobile */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-            {/* Left Column - Bets Table (67% on desktop) */}
-            <div className="lg:col-span-8 animate-slide-up">
-              <BetsTable />
-            </div>
+          {/* Action Bar */}
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8 animate-slide-up">
+            <WalletConnectButton />
+            <CreateVaultModal />
+          </div>
 
-            {/* Right Column - Leaderboard (33% on desktop) */}
-            <div className="lg:col-span-4 animate-slide-up" style={{ animationDelay: "100ms" }}>
-              <Leaderboard />
-            </div>
+          {/* Vault List */}
+          <div className="animate-slide-up" style={{ animationDelay: "100ms" }}>
+            <VaultList />
           </div>
 
           {/* Info Section */}
@@ -43,21 +43,21 @@ export default function HomePage() {
             <h2 className="text-2xl font-bold mb-4">How it Works</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
-                <div className="text-accent font-bold text-lg">1. Create a Bet</div>
+                <div className="text-accent font-bold text-lg">1. Create a Vault</div>
                 <p className="text-sm text-muted-foreground">
-                  Connect your wallet and create a football match prediction. Choose the teams, date, and your predicted winner.
+                  Connect your wallet and create a vault with a condition, deadline, and team address. Set the rules for fund release.
                 </p>
               </div>
               <div className="space-y-2">
-                <div className="text-accent font-bold text-lg">2. Wait for Resolution</div>
+                <div className="text-accent font-bold text-lg">2. Deposit Funds</div>
                 <p className="text-sm text-muted-foreground">
-                  After the match, the bet creator resolves the bet. GenLayer's AI verifies the actual match result.
+                  Deposit GEN tokens into the vault. Funds are locked until the condition is met or the deadline passes.
                 </p>
               </div>
               <div className="space-y-2">
-                <div className="text-accent font-bold text-lg">3. Earn Points</div>
+                <div className="text-accent font-bold text-lg">3. Automatic Resolution</div>
                 <p className="text-sm text-muted-foreground">
-                  Correct predictions earn you points. Climb the leaderboard and prove your football knowledge!
+                  GenLayer's AI checks the condition. If met, funds release to the team. If not, depositors get refunds.
                 </p>
               </div>
             </div>
@@ -94,12 +94,12 @@ export default function HomePage() {
                 Docs
               </a>
               <a
-                href="https://github.com/genlayerlabs/genlayer-project-boilerplate"
+                href="https://explorer-studio-dev.genlayer.com/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-accent transition-colors"
               >
-                GitHub
+                Explorer
               </a>
           </div>
         </div>

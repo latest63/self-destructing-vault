@@ -22,39 +22,96 @@ export const isSuccessfulDeploymentReceipt = (receipt: {
 };
 
 export default async function main(client: GenLayerClient<any>) {
-  const filePath = path.resolve(process.cwd(), "contracts/football_bets.py");
+  // Step 1: Deploy Condition Governor
+  const conditionPath = path.resolve(process.cwd(), "contracts/condition.py");
+  console.log("Deploying Condition Governor...");
 
   try {
-    const contractCode = new Uint8Array(readFileSync(filePath));
-
+    const conditionCode = new Uint8Array(readFileSync(conditionPath));
     await client.initializeConsensusSmartContract();
 
-    const deployTransaction = await client.deployContract({
-      code: contractCode,
+    const conditionTx = await client.deployContract({
+      code: conditionCode,
       args: [],
     });
 
-    const receipt = await client.waitForTransactionReceipt({
-      hash: deployTransaction as TransactionHash,
+    console.log(`Condition tx hash: ${conditionTx}`);
+
+    const conditionReceipt = await client.waitForTransactionReceipt({
+      hash: conditionTx as TransactionHash,
       waitUntil: "decided",
       retries: 200,
     });
 
-    if (!isSuccessfulDeploymentReceipt(receipt)) {
-      throw new Error(`Deployment failed. Receipt: ${JSON.stringify(receipt)}`);
+    console.log(`Condition receipt:`, JSON.stringify(conditionReceipt, null, 2));
+
+    if (!isSuccessfulDeploymentReceipt(conditionReceipt)) {
+      throw new Error(`Condition deployment failed. Receipt: ${JSON.stringify(conditionReceipt)}`);
     }
 
-    const deployedContractAddress =
+    // Try multiple ways to get the contract address
+    const conditionAddress =
       (client.chain as GenLayerChain).id === localnet.id
-        ? receipt.data?.contract_address
-        : (receipt.txDataDecoded as DecodedDeployData)?.contractAddress;
+        ? conditionReceipt.data?.contract_address
+        : (conditionReceipt.txDataDecoded as DecodedDeployData)?.contractAddress
+          ?? conditionReceipt.data?.contract_address
+          ?? conditionReceipt.contract_address;
 
-    if (!deployedContractAddress) {
-      throw new Error("Deployment receipt did not contain a contract address");
+    if (!conditionAddress) {
+      console.log("Receipt keys:", Object.keys(conditionReceipt));
+      console.log("Receipt.data:", conditionReceipt.data);
+      console.log("Receipt.txDataDecoded:", conditionReceipt.txDataDecoded);
+      throw new Error("Condition deployment receipt did not contain a contract address");
     }
 
-    console.log(`Contract deployed at address: ${deployedContractAddress}`);
+    console.log(`✅ Condition Governor deployed at: ${conditionAddress}`);
+
+    // Step 2: Deploy Vault
+    const vaultPath = path.resolve(process.cwd(), "contracts/vault.py");
+    console.log("Deploying Self-Destructing Vault...");
+
+    const vaultCode = new Uint8Array(readFileSync(vaultPath));
+
+    const vaultTx = await client.deployContract({
+      code: vaultCode,
+      args: [],
+    });
+
+    console.log(`Vault tx hash: ${vaultTx}`);
+
+    const vaultReceipt = await client.waitForTransactionReceipt({
+      hash: vaultTx as TransactionHash,
+      waitUntil: "decided",
+      retries: 200,
+    });
+
+    console.log(`Vault receipt:`, JSON.stringify(vaultReceipt, null, 2));
+
+    if (!isSuccessfulDeploymentReceipt(vaultReceipt)) {
+      throw new Error(`Vault deployment failed. Receipt: ${JSON.stringify(vaultReceipt)}`);
+    }
+
+    const vaultAddress =
+      (client.chain as GenLayerChain).id === localnet.id
+        ? vaultReceipt.data?.contract_address
+        : (vaultReceipt.txDataDecoded as DecodedDeployData)?.contractAddress
+          ?? vaultReceipt.data?.contract_address
+          ?? vaultReceipt.contract_address;
+
+    if (!vaultAddress) {
+      throw new Error("Vault deployment receipt did not contain a contract address");
+    }
+
+    console.log(`✅ Self-Destructing Vault deployed at: ${vaultAddress}`);
+
+    console.log("\n=== DEPLOYMENT COMPLETE ===");
+    console.log(`Condition Governor: ${conditionAddress}`);
+    console.log(`Vault: ${vaultAddress}`);
+    console.log(`\nUpdate frontend/.env with:`);
+    console.log(`NEXT_PUBLIC_VAULT_CONTRACT_ADDRESS=${vaultAddress}`);
+    console.log(`NEXT_PUBLIC_CONDITION_CONTRACT_ADDRESS=${conditionAddress}`);
+
   } catch (error) {
-    throw new Error(`Error during deployment:, ${error}`);
+    throw new Error(`Error during deployment: ${error}`);
   }
 }

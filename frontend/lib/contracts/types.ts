@@ -1,23 +1,37 @@
 /**
- * TypeScript types for GenLayer Football Betting contract
+ * TypeScript types for GenLayer Self-Destructing Vault contract
  */
 
-export interface Bet {
+export interface Vault {
   id: string;
-  game_date: string;
-  team1: string;
-  team2: string;
-  predicted_winner: string;
-  has_resolved: boolean;
-  real_winner?: string;
-  real_score?: string;
-  resolution_url?: string;
-  owner: string;
+  team_address: string;
+  deadline: string;
+  condition: string;
+  check_url: string;
+  total_deposited: string; // In GEN (wei string)
+  status: 'active' | 'released' | 'refunded';
+  verdict?: boolean;
+  created_at: string;
+  creator: string;
 }
 
-export interface LeaderboardEntry {
-  address: string;
-  points: number;
+export interface VaultCondition {
+  id: string;
+  description: string;
+  check_url: string;
+  result?: boolean;
+}
+
+export interface CreateVaultParams {
+  team_address: string;
+  deadline: string;
+  condition: string;
+  check_url: string;
+}
+
+export interface DepositParams {
+  vault_id: string;
+  amount: string; // In GEN (wei string)
 }
 
 export interface TransactionReceipt {
@@ -25,9 +39,4 @@ export interface TransactionReceipt {
   hash: string;
   blockNumber?: number;
   [key: string]: any;
-}
-
-export interface BetFilters {
-  resolved?: boolean;
-  owner?: string;
 }

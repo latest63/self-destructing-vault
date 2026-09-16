@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { AccountPanel } from "./AccountPanel";
-import { LogoMark } from "./Logo";
+import { WordmarkSVG } from "./Logo";
 import { WalletConnectButton } from "./WalletConnectButton";
 
 export function Navbar() {
@@ -27,13 +27,8 @@ export function Navbar() {
         <div className="shell">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Left: brand */}
-            <a href="/" className="flex items-center gap-2.5 shrink-0">
-              <span className="text-primary">
-                <LogoMark size="md" />
-              </span>
-              <span className="text-base font-bold tracking-tight">
-                ShipGuard
-              </span>
+            <a href="/" className="flex items-center shrink-0" aria-label="ShipGuard home">
+              <WordmarkSVG height={22} className="text-foreground" />
             </a>
 
             {/* Right: actions */}

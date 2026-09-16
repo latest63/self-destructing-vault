@@ -1,11 +1,11 @@
 {
-  "name": "GenLayer Football Market",
-  "short_name": "GenLayer Market",
-  "description": "AI-powered football match predictions on GenLayer blockchain",
+  "name": "ShipGuard",
+  "short_name": "ShipGuard",
+  "description": "Escrowed funding for teams. A team opens a raise with a condition, an evidence URL, and a close date. Backers deposit GEN. At the close date GenLayer's AI reads the evidence — condition met, the funds release to the team; not met, every backer is refunded.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#9B6AF6",
+  "theme_color": "#b2fb28",
   "icons": [
     {
       "src": "/favicon.svg",

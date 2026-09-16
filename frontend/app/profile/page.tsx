@@ -111,7 +111,7 @@ export default function ProfilePage() {
                         Wallet address
                       </label>
                       <div className="flex items-center gap-2">
-                        <code className="flex-1 text-sm font-medium text-foreground tabular-nums bg-white/[0.03] border border-border rounded-lg px-3 py-2.5">
+                        <code className="flex-1 min-w-0 text-sm font-medium text-foreground tabular-nums bg-white/[0.03] border border-border rounded-lg px-3 py-2.5 truncate" title={address}>
                           {address}
                         </code>
                         <button

@@ -3,11 +3,16 @@
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { fetchRaises, type ShippingRaise } from "@/lib/raises";
+import { useWallet } from "@/lib/genlayer/wallet";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Loader2, Coins, Gavel, ShieldCheck, Clock, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function ExplorePage() {
   const [raises, setRaises] = useState<ShippingRaise[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isConnected } = useWallet();
+  const { openConnectModal } = useConnectModal();
 
   useEffect(() => {
     fetchRaises()
@@ -15,6 +20,15 @@ export default function ExplorePage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  // Back a raise — only asks for wallet when actually clicking Back.
+  // Browsing the page never requires a connection.
+  const handleBack = () => {
+    if (!isConnected) {
+      openConnectModal?.();
+    }
+    // Once connected, this is where the actual deposit transaction goes.
+  };
 
   // Derive stats
   const totalRaised = "32.05M"; // from seed data
@@ -84,7 +98,7 @@ export default function ExplorePage() {
           ) : (
             <div className="space-y-3">
               {raises.map((raise) => (
-                <RaiseRow key={raise.id} raise={raise} />
+                <RaiseRow key={raise.id} raise={raise} onBack={handleBack} />
               ))}
             </div>
           )}
@@ -127,7 +141,7 @@ function MetricCard({
 
 /* ── Raise row ────────────────────────────────────────────────────────────── */
 
-function RaiseRow({ raise }: { raise: ShippingRaise }) {
+function RaiseRow({ raise, onBack }: { raise: ShippingRaise; onBack: () => void }) {
   const [imgError, setImgError] = useState(false);
   const closes = new Date(raise.closes_on);
   const closesLabel = closes.toLocaleDateString(undefined, {
@@ -189,7 +203,7 @@ function RaiseRow({ raise }: { raise: ShippingRaise }) {
         </div>
       </div>
 
-      {/* Raised amount + verified badge */}
+      {/* Raised amount + verified badge + Back button */}
       <div className="flex items-center gap-3 sm:gap-4 sm:ml-auto sm:w-auto w-full sm:w-auto">
         <div className="flex items-baseline gap-1">
           <span className="text-lg font-bold tabular-nums tracking-tight">
@@ -206,6 +220,15 @@ function RaiseRow({ raise }: { raise: ShippingRaise }) {
             Verified
           </span>
         )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onBack}
+          className="ml-auto sm:ml-0 shrink-0 border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 hover:text-primary"
+        >
+          <Coins className="w-3.5 h-3.5 mr-1" />
+          Back
+        </Button>
       </div>
 
       {/* Mobile-only progress */}

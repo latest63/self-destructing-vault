@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { fetchRaises, type ShippingRaise } from "@/lib/raises";
-import { useWallet } from "@/lib/genlayer/wallet";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useAccount } from "wagmi";
 import { Loader2, Coins, Gavel, ShieldCheck, Clock, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function ExplorePage() {
   const [raises, setRaises] = useState<ShippingRaise[]>([]);
   const [loading, setLoading] = useState(true);
-  const { isConnected } = useWallet();
+  const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
 
   useEffect(() => {

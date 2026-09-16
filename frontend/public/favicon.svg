@@ -1,5 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="#000000">
-  <title>ShipGuard</title>
-  <circle cx="50" cy="50" r="48" fill="none" stroke="#d4ff00" stroke-width="4"/>
-  <text x="50" y="58" font-family="JetBrains Mono,Arial,monospace" font-size="28" font-weight="700" fill="#d4ff00" text-anchor="middle">SG</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- This would be replaced with the actual SVG from Google Drive -->
+  <!-- The Google Drive link points to a PNG/image that needs to be downloaded -->
+  <!-- For now, using ShipGuard lemon checkmark -->
+  <circle cx="256" cy="256" r="256" fill="#000000"/>
+  <path fill="#d4ff00" d="M160 160l128 192 128-192H160z"/>
 </svg>

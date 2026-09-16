@@ -17,9 +17,11 @@ import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 export function CreateVaultModal() {
   const { isConnected, address, isLoading } = useWallet();
+  const { openConnectModal } = useConnectModal();
   const kit = useTransactionKit(address);
   const invalidateVaultsData = useInvalidateVaultsData();
   const vaultAddress = getVaultContractAddress();
@@ -194,10 +196,26 @@ export function CreateVaultModal() {
     setIsOpen(open);
   };
 
+  // Handle "Launch a raise" button click - open wallet connect if not connected
+  const handleLaunchClick = () => {
+    if (!isConnected) {
+      if (openConnectModal) {
+        openConnectModal();
+      }
+    } else {
+      setIsOpen(true);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="gradient" disabled={!isConnected || !address || isLoading}>
+        <Button 
+          variant="gradient" 
+          disabled={isLoading}
+          onClick={handleLaunchClick}
+          className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Launch a raise
         </Button>

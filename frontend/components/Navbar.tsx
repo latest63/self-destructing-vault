@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { WordmarkSVG } from "./Logo";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useWallet } from "@/lib/genlayer/wallet";
+import { Button } from "./ui/button";
+import { Wallet, LogOut } from "lucide-react";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { address, isConnected, connectWallet, disconnectWallet } = useWallet();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 8);
@@ -27,15 +30,28 @@ export function Navbar() {
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Left: brand */}
             <a
-              href="/"
+              href="/home"
               className="flex items-center shrink-0"
               aria-label="ShipGuard home"
             >
               <WordmarkSVG height={15} className="text-foreground" />
             </a>
 
-            {/* Right: RainbowKit ConnectButton styled via theme provider */}
-            <ConnectButton />
+            {/* Right: wallet info - when connected */}
+            {isConnected && address && (
+              <div className="flex items-center gap-2">
+                <div className="text-sm text-muted-foreground">
+                  {address.slice(0, 6)}...{address.slice(-4)}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={disconnectWallet}
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,135 +1,112 @@
 @import "tailwindcss";
 
-/* GenLayer Brand Guidelines 2025 - Typography via local fonts */
-/* --font-body / --font-display: Switzer */
-
-@font-face {
-  font-family: 'Switzer';
-  src: url('/fonts/Switzer-Light.woff2') format('woff2');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Switzer';
-  src: url('/fonts/Switzer-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Switzer';
-  src: url('/fonts/Switzer-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
+/* Lemon theme typography: JetBrains Mono (body/UI) + Inter (headings),
+   loaded via next/font in app/layout.tsx which sets --font-jetbrains-mono
+   and --font-inter on <body>. Fallbacks cover the pre-hydration paint. */
 
 @custom-variant dark (&:is(.dark *));
 
 /* GenLayer Brand Colors 2025 */
 :root {
-  --font-body: 'Switzer';
-  --font-display: 'Switzer';
+  --font-body: var(--font-jetbrains-mono), 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  --font-display: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* Base colors - keep black background for dark theme */
-  --background: oklch(0 0 0);
-  --foreground: oklch(0.98 0 0);
+  /* Lemon theme: pure black base, lime accent (ported from Ecosystem Fund Guardian) */
+  --background: #000000;
+  --foreground: #ffffff;
 
-  /* Cards with navy tint per brand guidelines */
-  --card: oklch(0.25 0.08 265);
-  --card-foreground: oklch(0.98 0 0);
-  --popover: oklch(0.25 0.08 265);
-  --popover-foreground: oklch(0.98 0 0);
+  /* Cards / popovers */
+  --card: #0a0a0a;
+  --card-foreground: #ffffff;
+  --popover: #0a0a0a;
+  --popover-foreground: #ffffff;
 
-  /* Primary: Purple-Pink Gradient (#9B6AF6 → #E37DF7) */
-  --primary: oklch(0.65 0.22 300);
-  --primary-foreground: oklch(0.98 0 0);
+  /* Primary: lemon lime */
+  --primary: #d4ff00;
+  --primary-foreground: #000000;
 
-  /* Secondary: Navy Blue (#282B5D) */
-  --secondary: oklch(0.25 0.08 265);
-  --secondary-foreground: oklch(0.98 0 0);
+  /* Secondary: dark surface */
+  --secondary: #111111;
+  --secondary-foreground: #ffffff;
 
   /* Muted states */
-  --muted: oklch(0.18 0.04 265);
-  --muted-foreground: oklch(0.55 0 0);
+  --muted: #111111;
+  --muted-foreground: #888888;
 
-  /* Accent: Purple (brand primary) */
-  --accent: oklch(0.65 0.22 300);
-  --accent-foreground: oklch(0.98 0 0);
+  /* Accent: lemon lime */
+  --accent: #d4ff00;
+  --accent-foreground: #000000;
 
-  /* Brand Blue: #110FFF */
-  --blue: oklch(0.55 0.37 265);
-  --blue-foreground: oklch(0.98 0 0);
+  /* Brand blue (kept for compat) */
+  --blue: #d4ff00;
+  --blue-foreground: #000000;
 
-  /* Brand Pink (gradient end): #E37DF7 */
-  --pink: oklch(0.78 0.18 330);
+  /* Brand pink (kept for compat) */
+  --pink: #d4ff00;
 
   /* Destructive remains red */
-  --destructive: oklch(0.65 0.25 25);
-  --destructive-foreground: oklch(0.98 0 0);
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
 
-  /* Borders and inputs with navy tint */
-  --border: oklch(0.25 0.08 265);
-  --input: oklch(0.20 0.06 265);
-  --ring: oklch(0.65 0.22 300);
+  /* Borders and inputs */
+  --border: #1a1a1a;
+  --input: #111111;
+  --ring: #d4ff00;
 
-  /* Chart colors using brand palette */
-  --chart-1: oklch(0.65 0.22 300); /* Purple */
-  --chart-2: oklch(0.78 0.18 330); /* Pink */
-  --chart-3: oklch(0.55 0.37 265); /* Blue */
-  --chart-4: oklch(0.25 0.08 265); /* Navy */
-  --chart-5: oklch(0.60 0.20 315); /* Purple-Pink mid */
+  /* Chart colors */
+  --chart-1: #d4ff00;
+  --chart-2: #c8f000;
+  --chart-3: #eab308;
+  --chart-4: #1a1a1a;
+  --chart-5: #888888;
 
-  --radius: 0.5rem;
+  --radius: 0.25rem;
 
   /* Sidebar colors */
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.65 0.22 300);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #0a0a0a;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #d4ff00;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #111111;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1a1a1a;
+  --sidebar-ring: #d4ff00;
 }
 
 /* Dark theme (same as root for this project - already dark) */
 .dark {
-  --background: oklch(0 0 0);
-  --foreground: oklch(0.98 0 0);
-  --card: oklch(0.25 0.08 265);
-  --card-foreground: oklch(0.98 0 0);
-  --popover: oklch(0.25 0.08 265);
-  --popover-foreground: oklch(0.98 0 0);
-  --primary: oklch(0.65 0.22 300);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.25 0.08 265);
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.18 0.04 265);
-  --muted-foreground: oklch(0.55 0 0);
-  --accent: oklch(0.65 0.22 300);
-  --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.65 0.25 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.25 0.08 265);
-  --input: oklch(0.20 0.06 265);
-  --ring: oklch(0.65 0.22 300);
-  --chart-1: oklch(0.65 0.22 300);
-  --chart-2: oklch(0.78 0.18 330);
-  --chart-3: oklch(0.55 0.37 265);
-  --chart-4: oklch(0.25 0.08 265);
-  --chart-5: oklch(0.60 0.20 315);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.65 0.22 300);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.25 0.08 265);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.25 0.08 265);
-  --sidebar-ring: oklch(0.65 0.22 300);
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #0a0a0a;
+  --card-foreground: #ffffff;
+  --popover: #0a0a0a;
+  --popover-foreground: #ffffff;
+  --primary: #d4ff00;
+  --primary-foreground: #000000;
+  --secondary: #111111;
+  --secondary-foreground: #ffffff;
+  --muted: #111111;
+  --muted-foreground: #888888;
+  --accent: #d4ff00;
+  --accent-foreground: #000000;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #1a1a1a;
+  --input: #111111;
+  --ring: #d4ff00;
+  --chart-1: #d4ff00;
+  --chart-2: #c8f000;
+  --chart-3: #eab308;
+  --chart-4: #1a1a1a;
+  --chart-5: #888888;
+  --sidebar: #0a0a0a;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #d4ff00;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #111111;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1a1a1a;
+  --sidebar-ring: #d4ff00;
 }
 
 @theme inline {
@@ -222,135 +199,137 @@
     }
   }
 
-  /* Brand Gradient Utilities */
+  /* Brand Gradient Utilities — lemon theme */
   .gradient-purple-pink {
-    background: linear-gradient(135deg, oklch(0.65 0.22 300) 0%, oklch(0.78 0.18 330) 100%);
+    background: #d4ff00;
+    color: #000000;
   }
 
   .gradient-purple-blue {
-    background: linear-gradient(135deg, oklch(0.65 0.22 300) 0%, oklch(0.55 0.37 265) 100%);
+    background: #d4ff00;
+    color: #000000;
   }
 
-  /* Clean Card Styles (replacing glass-morphism) */
+  /* Clean Card Styles (lemon flat surfaces) */
   .brand-card {
-    background: oklch(0.25 0.08 265 / 0.6);
-    border: 1px solid oklch(0.30 0.10 265 / 0.4);
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-radius: 0.25rem;
+    box-shadow: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .brand-card-hover:hover {
-    border-color: oklch(0.65 0.22 300 / 0.6);
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1),
-                0 0 0 1px oklch(0.65 0.22 300 / 0.2);
+    border-color: #d4ff00;
+    box-shadow: none;
     transform: translateY(-2px);
   }
 
   /* Clean Navbar */
   .brand-navbar {
-    background: oklch(0 0 0 / 0.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid oklch(0.25 0.08 265 / 0.4);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid #1a1a1a;
   }
 
-  /* Brand Button Styles - Primary (Purple Gradient) */
+  /* Brand Button Styles - Primary (lemon) */
   .btn-primary {
     padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    background: linear-gradient(135deg, oklch(0.65 0.22 300) 0%, oklch(0.78 0.18 330) 100%);
-    color: oklch(0.98 0 0);
-    font-weight: 500;
+    border-radius: 0.25rem;
+    background: #d4ff00;
+    color: #000000;
+    font-weight: 600;
     border: none;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px 0 oklch(0.65 0.22 300 / 0.2);
+    box-shadow: none;
   }
 
   .btn-primary:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px 0 oklch(0.65 0.22 300 / 0.3);
-    filter: brightness(1.1);
+    background: #c8f000;
+    box-shadow: none;
   }
 
   .btn-primary:active:not(:disabled) {
     transform: translateY(0);
   }
 
-  /* Brand Button - Secondary (Navy) */
+  /* Brand Button - Secondary (dark surface) */
   .btn-secondary {
     padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    background: oklch(0.25 0.08 265);
-    color: oklch(0.98 0 0);
-    font-weight: 500;
-    border: 1px solid oklch(0.30 0.10 265);
+    border-radius: 0.25rem;
+    background: #111111;
+    color: #ffffff;
+    font-weight: 600;
+    border: 1px solid #1a1a1a;
     transition: all 0.2s ease;
   }
 
   .btn-secondary:hover:not(:disabled) {
-    background: oklch(0.28 0.10 265);
-    border-color: oklch(0.65 0.22 300 / 0.5);
+    background: #111111;
+    border-color: #d4ff00;
+    color: #d4ff00;
     transform: translateY(-1px);
   }
 
-  /* Brand Button - Blue */
+  /* Brand Button - Blue (lemon alias) */
   .btn-blue {
     padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    background: oklch(0.55 0.37 265);
-    color: oklch(0.98 0 0);
-    font-weight: 500;
+    border-radius: 0.25rem;
+    background: #d4ff00;
+    color: #000000;
+    font-weight: 600;
     border: none;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px 0 oklch(0.55 0.37 265 / 0.2);
+    box-shadow: none;
   }
 
   .btn-blue:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px 0 oklch(0.55 0.37 265 / 0.3);
-    filter: brightness(1.1);
+    background: #c8f000;
+    box-shadow: none;
   }
 
-  /* Betting Panel Button States (Simplified) */
+  /* Selection Panels (lemon) */
   .bet-button-unselected {
-    background: oklch(0.25 0.08 265 / 0.5);
-    border: 1px solid oklch(0.30 0.10 265 / 0.4);
+    background: #111111;
+    border: 1px solid #1a1a1a;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .bet-button-unselected-a:hover {
-    background: oklch(0.28 0.12 300 / 0.6);
-    border-color: oklch(0.65 0.22 300 / 0.6);
+    background: #111111;
+    border-color: #d4ff00;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px 0 oklch(0.65 0.22 300 / 0.2);
+    box-shadow: none;
   }
 
   .bet-button-unselected-b:hover {
-    background: oklch(0.28 0.15 265 / 0.6);
-    border-color: oklch(0.55 0.37 265 / 0.6);
+    background: #111111;
+    border-color: #d4ff00;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px 0 oklch(0.55 0.37 265 / 0.2);
+    box-shadow: none;
   }
 
   .bet-button-selected-a {
-    background: oklch(0.25 0.08 265 / 0.6);
-    color: oklch(0.98 0 0);
-    border: 1px solid oklch(0.65 0.22 300);
-    box-shadow: 0 0 0 2px oklch(0.65 0.22 300 / 0.2), 0 4px 12px 0 oklch(0.65 0.22 300 / 0.3);
+    background: #0a0a0a;
+    color: #ffffff;
+    border: 1px solid #d4ff00;
+    box-shadow: 0 0 0 2px rgba(212, 255, 0, 0.2);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .bet-button-selected-b {
-    background: oklch(0.25 0.08 265 / 0.6);
-    color: oklch(0.98 0 0);
-    border: 1px solid oklch(0.55 0.37 265);
-    box-shadow: 0 0 0 2px oklch(0.55 0.37 265 / 0.2), 0 4px 12px 0 oklch(0.55 0.37 265 / 0.3);
+    background: #0a0a0a;
+    color: #ffffff;
+    border: 1px solid #d4ff00;
+    box-shadow: 0 0 0 2px rgba(212, 255, 0, 0.2);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
-/* GenLayer Brand Background - Clean with Subtle Purple Gradient */
+/* Lemon theme background — black with a faint lime bloom at the top */
 @keyframes brandGradientShift {
   0%, 100% {
     background-position: 0% 50%;
@@ -366,9 +345,8 @@ html {
   scroll-behavior: smooth;
   background-color: #000000 !important;
   background-image:
-    radial-gradient(ellipse 80% 60% at 50% -20%, oklch(0.65 0.22 300 / 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 80% 80%, oklch(0.55 0.37 265 / 0.05) 0%, transparent 50%),
-    linear-gradient(180deg, #000000 0%, #0a0a0f 50%, #000000 100%);
+    radial-gradient(ellipse 60% 30% at 50% 0%, rgba(212, 255, 0, 0.05) 0%, transparent 70%),
+    linear-gradient(180deg, #000000 0%, #000000 100%);
   background-attachment: fixed !important;
   background-size: 200% 200% !important;
   background-repeat: no-repeat !important;

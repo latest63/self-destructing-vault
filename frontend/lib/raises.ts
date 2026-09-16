@@ -1,41 +1,32 @@
 /**
- * Open raises — data source.
+ * Open raises — data source backed by Supabase.
  *
- * Reads from Supabase when it's configured. Until then it serves a seed set so
- * the carousel has something to render in dev and in preview deploys.
+ * Uses the same Ecosystem Fund Guardian Supabase project
+ * (ervkqbncvboqsgvwjnpq.supabase.co) with a `raises` table.
  *
- * To go live:
- *   1. npm i @supabase/supabase-js
- *   2. set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
- *   3. create the `raises` table (see the shape below)
- *
- * The row shape matches ShippingRaise exactly, so no mapping layer is needed.
+ * If Supabase is not configured or unavailable, returns seed data.
  */
+
+import { createClient } from "@supabase/supabase-js";
 
 export interface ShippingRaise {
   id: string;
   company: string;
-  /** Short line under the company name — what they're building. */
   tagline: string;
-  /** Two-letter mark used in the card's logo tile. */
   initials: string;
-  /** Brand colour for the logo tile. */
   tint: string;
-  /** GEN raised so far, already formatted (e.g. "1.24M"). */
   raised: string;
-  /** Progress toward the raise, 0-100. */
   progress: number;
-  /** ISO date the raise closes. */
   closes_on: string;
-  /** Whether the condition is verified met. */
   verified: boolean;
 }
 
-/**
- * Seed data. These are well-known names used to show the card's range and
- * density; they are NOT live raises. Replace by pointing the app at Supabase.
- */
-export const SEED_RAISES: ShippingRaise[] = [
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
+const hasSupabase = Boolean(supabaseUrl && supabaseKey);
+
+const SEED_RAISES: ShippingRaise[] = [
   {
     id: "amazon",
     company: "Amazon",
@@ -126,36 +117,25 @@ export const SEED_RAISES: ShippingRaise[] = [
   },
 ];
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-/** True when the app has been pointed at a Supabase project. */
-export const hasSupabase = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
-
 /**
- * Fetch open raises.
- *
- * Uses the Supabase REST endpoint directly via fetch, so no extra dependency is
- * needed. Swap for @supabase/supabase-js if you start needing auth or realtime.
+ * Fetch open raises from Supabase, fallback to seed data.
  */
 export async function fetchRaises(): Promise<ShippingRaise[]> {
   if (!hasSupabase) return SEED_RAISES;
 
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/raises?select=*&order=progress.desc`,
-      {
-        headers: {
-          apikey: `${SUPABASE_ANON_KEY}`,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-        // Carousel data changes slowly; revalidate every 5 minutes.
-        next: { revalidate: 300 },
-      }
-    );
-    if (!res.ok) throw new Error(`Supabase responded ${res.status}`);
-    const rows = (await res.json()) as ShippingRaise[];
-    return rows.length > 0 ? rows : SEED_RAISES;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { data, error } = await supabase
+      .from("raises")
+      .select("*")
+      .order("progress", { ascending: false });
+
+    if (error) {
+      console.warn("[raises] Supabase query failed, using seed data:", error.message);
+      return SEED_RAISES;
+    }
+    if (!data || data.length === 0) return SEED_RAISES;
+    return data as ShippingRaise[];
   } catch (err) {
     console.error("[raises] Supabase fetch failed, falling back to seed:", err);
     return SEED_RAISES;

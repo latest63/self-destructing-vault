@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { WordmarkSVG } from "./Logo";
-import { LogOut, Menu, X, Wallet, Compass, Rocket, LayoutGrid } from "lucide-react";
+import { LogOut, Menu, X, Wallet, Compass, Rocket, User } from "lucide-react";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAccount, useDisconnect } from "wagmi";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  action: "connect" | "explore" | "launch" | "dashboard" | "disconnect" | null;
+  action: "explore" | "launch" | "profile" | "myraises" | "connect" | "disconnect" | null;
 }
 
 function shortAddr(addr: string | undefined) {
@@ -64,23 +64,19 @@ export function Navbar() {
       case "disconnect":
         disconnect();
         break;
+      case "profile":
+        router.push("/profile");
+        break;
     }
   };
 
-  // Menu items based on wallet state — "Launch a raise" is always available,
-  // since the form can be viewed/filled without a wallet (connect at submit).
-  const menuItems: NavItem[] = isConnected
-    ? [
-        { label: "Explore raises", icon: Compass, action: "explore" },
-        { label: "Launch a raise", icon: Rocket, action: "launch" },
-        { label: "My raises", icon: LayoutGrid, action: "explore" },
-        { label: "Disconnect wallet", icon: LogOut, action: "disconnect" },
-      ]
-    : [
-        { label: "Explore raises", icon: Compass, action: "explore" },
-        { label: "Launch a raise", icon: Rocket, action: "launch" },
-        { label: "Connect wallet", icon: Wallet, action: "connect" },
-      ];
+  // Major nav items — primary actions only. Wallet connect/disconnect is
+  // handled separately at the foot of the menu, not mixed into this list.
+  const menuItems: NavItem[] = [
+    { label: "Explore raises", icon: Compass, action: "explore" },
+    { label: "Launch a raise", icon: Rocket, action: "launch" },
+    { label: "Profile", icon: User, action: "profile" },
+  ];
 
   return (
     <>
@@ -177,38 +173,14 @@ export function Navbar() {
               overflow-hidden
             "
           >
-            {/* Section header with wallet details */}
+            {/* Section header */}
             <div className="px-5 py-4 border-b border-border/50">
               <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted-foreground">
-                {isConnected ? "Connected wallet" : "Menu"}
+                Menu
               </p>
-
-              {/* Wallet details widget — shown only when connected */}
-              {isConnected && address && (
-                <div className="mt-3 flex items-center gap-3 p-3 rounded-lg bg-white/[0.04] border border-white/10">
-                  {/* Avatar */}
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/15 border border-primary/25 shrink-0">
-                    <Wallet className="w-5 h-5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-50" />
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
-                      </span>
-                      <p className="text-sm font-semibold text-foreground tabular-nums">
-                        {shortAddr(address)}
-                      </p>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Studio Next · Chain 61997
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Items */}
+            {/* Major nav items */}
             <nav className="p-2">
               {menuItems.map((item) => (
                 <button
@@ -229,13 +201,86 @@ export function Navbar() {
               ))}
             </nav>
 
-            {/* Footer note */}
-            <div className="px-5 py-3 border-t border-border/50">
-              <p className="text-[11px] text-muted-foreground/60">
-                {isConnected
-                  ? "You are connected to Studio Next (61997)"
-                  : "Connect your wallet to launch or back a raise"}
+            {/* ── Wallet section — foot of the menu, separated from major nav ── */}
+            <div className="border-t border-border/50 p-4">
+              <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted-foreground mb-3 px-1">
+                {isConnected ? "Connected wallet" : "Wallet"}
               </p>
+
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.04] border border-white/10">
+                {/* Avatar */}
+                <div
+                  className={`flex items-center justify-center w-10 h-10 rounded-full border shrink-0 ${
+                    isConnected
+                      ? "bg-primary/15 border-primary/25"
+                      : "bg-white/5 border-border"
+                  }`}
+                >
+                  {isConnected ? (
+                    <Wallet className="w-5 h-5 text-primary" />
+                  ) : (
+                    <Wallet className="w-5 h-5 text-muted-foreground/50" />
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span
+                        className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-50 ${
+                          isConnected ? "bg-primary" : "bg-muted-foreground/40"
+                        }`}
+                      />
+                      <span
+                        className={`relative inline-flex rounded-full h-1.5 w-1.5 ${
+                          isConnected ? "bg-primary" : "bg-muted-foreground/40"
+                        }`}
+                      />
+                    </span>
+                    <p
+                      className={`text-sm font-semibold tabular-nums ${
+                        isConnected
+                          ? "text-foreground"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      {isConnected && address
+                        ? shortAddr(address)
+                        : "Not connected"}
+                    </p>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    {isConnected
+                      ? "Studio Next · Chain 61997"
+                      : "Connect to launch or back a raise"}
+                  </p>
+                </div>
+
+                {/* Connect / Disconnect */}
+                {isConnected ? (
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      disconnect();
+                    }}
+                    aria-label="Disconnect wallet"
+                    className="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg border border-destructive/25 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors duration-150"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      openConnectModal?.();
+                    }}
+                    aria-label="Connect wallet"
+                    className="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg border border-primary/25 bg-primary/10 text-primary hover:bg-primary/20 transition-colors duration-150"
+                  >
+                    <Wallet className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

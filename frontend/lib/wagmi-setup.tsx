@@ -33,12 +33,29 @@ export const wagmiConfig = createConfig({
 
 export const queryClient = new QueryClient();
 
-/** Custom theme matching ShipGuard's lemon UI: lime #d4ff00 on black */
+/** Custom theme matching ShipGuard's lemon UI: lime #d4ff00 on black, smaller button */
 const shipguardTheme = darkTheme({
   accentColor: "var(--primary, #d4ff00)",
   accentColorForeground: "#000",
   borderRadius: "large",
-});
+  // Override connect button size via custom CSS variables
+  overlayBlur: "small",
+} as any);
+
+// Add custom CSS for smaller button
+if (typeof document !== "undefined") {
+  const style = document.createElement("style");
+  style.textContent = `
+    :root {
+      --rk-font-size-caption: 11px;
+      --rk-font-size-label: 12px;
+      --rk-font-size-account-name: 12px;
+    }
+    [data-rk] .ju367vn { min-height: 36px; }
+    [data-rk] .ju367v1d { font-size: 15px; }
+  `;
+  document.head.appendChild(style);
+}
 
 export function WagmiProviders({ children }: { children: React.ReactNode }) {
   return (

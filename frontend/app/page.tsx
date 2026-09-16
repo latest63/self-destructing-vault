@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/Navbar";
 import { CreateVaultModal } from "@/components/CreateVaultModal";
-import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { RaiseCarousel } from "@/components/RaiseCarousel";
 import { fetchRaises } from "@/lib/raises";
 import { Coins, ShieldCheck, Gavel } from "lucide-react";
@@ -93,7 +92,6 @@ export default async function HomePage() {
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-12">
               <CreateVaultModal />
-              <WalletConnectButton cta="Back a raise" />
             </div>
 
             {/* The contract, in four steps */}

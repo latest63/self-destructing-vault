@@ -4,6 +4,40 @@ import { useState, useEffect } from "react";
 import { WordmarkSVG } from "./Logo";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
+/**
+ * Styled link button to match the lemon UI theme.
+ * Appears when wallet is connected, opens MetaMask when disconnected.
+ */
+function StyledLink({ 
+  children, 
+  onClick,
+  disabled 
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="btn-primary text-sm font-semibold"
+      style={{
+        background: "var(--primary, #d4ff00)",
+        color: "#000",
+        border: "none",
+        borderRadius: "var(--radius, 0.25rem)",
+        padding: "0.5rem 1.25rem",
+        cursor: disabled ? "default" : "pointer",
+        opacity: disabled ? 0.6 : 1,
+        transition: "all 0.2s ease",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -34,12 +68,10 @@ export function Navbar() {
               <WordmarkSVG height={15} className="text-foreground" />
             </a>
 
-            {/* Right: RainbowKit connect button */}
-            <ConnectButton
-              accountStatus="avatar"
-              chainStatus="icon"
-              showBalance={false}
-            />
+            {/* Right: connect button - styled to match the app's lemon theme */}
+            <StyledLink onClick={() => {}}>
+              Connect Wallet
+            </StyledLink>
           </div>
         </div>
       </div>

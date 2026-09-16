@@ -25,6 +25,24 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
+/** Generate an inline SVG badge for a company */
+function CompanyBadge({ initials, tint }: { initials: string; tint: string }) {
+  const svg = `data:image/svg+xml;base64,${btoa(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="45" fill="${tint}" />
+      <text x="50" y="58" font-family="JetBrains Mono,Arial,monospace" font-size="32" font-weight="600" fill="#000" text-anchor="middle">${initials}</text>
+    </svg>`
+  )}`;
+  return (
+    <img
+      src={svg}
+      alt=""
+      className="w-10 h-10 object-contain rounded"
+      draggable={false}
+    />
+  );
+}
+
 function RaiseCard({ raise }: { raise: ShippingRaise }) {
   const closes = new Date(raise.closes_on);
   const closesLabel = closes.toLocaleDateString(undefined, {
@@ -34,25 +52,12 @@ function RaiseCard({ raise }: { raise: ShippingRaise }) {
 
   return (
     <article className="raise-card group">
-      {/* Company mark - logo image if available, else initials badge */}
+      {/* Company mark - inline SVG badge */}
       <div className="flex items-start justify-between gap-3 mb-5">
         <div className="flex items-center gap-3">
-          {raise.logo_url ? (
-            <img
-              src={raise.logo_url}
-              alt={`${raise.company} logo`}
-              className="w-10 h-10 object-contain bg-background border border-border rounded"
-              onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
-            />
-          ) : (
-            <span
-              className="raise-logo"
-              style={{ background: raise.tint }}
-              aria-hidden="true"
-            >
-              {raise.initials}
-            </span>
-          )}
+          <div className="flex items-center justify-center w-10 h-10 bg-background border border-border rounded">
+            <CompanyBadge initials={raise.initials} tint={raise.tint} />
+          </div>
           <div>
             <h3 className="text-sm font-semibold leading-tight">
               {raise.company}

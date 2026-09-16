@@ -1,18 +1,16 @@
 "use client";
 
 /**
- * Wagmi + RainbowKit setup — copied from the Ecosystem Fund Guardian project.
+ * Wagmi + RainbowKit setup — copied from Ecosystem Fund Guardian project.
  *
- * The EFG wiring lives in frontend/src/App.jsx and uses projectId
- * "7dbda9b31e7da7cb396ca5a5ae2f668e". ShipGuard reuses the same projectId
- * so the same WalletConnect relay infrastructure applies out of the box.
+ * Uses the same projectId as EFG so WalletConnect relay works out of the box.
  */
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConfig, http } from "wagmi";
 import { WagmiProvider } from "wagmi";
 import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import "@rainbow-me/rainbowkit/styles.css";
+import "@rainbow-me/rainbowkit/dist/styles.css";
 import { studioDevnet } from "genlayer-js/chains";
 import { GENLAYER_CHAIN } from "@/lib/genlayer/network";
 

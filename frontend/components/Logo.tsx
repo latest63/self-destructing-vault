@@ -1,11 +1,10 @@
 /**
- * GenLayer Logo Component
- * Per Brand Guidelines 2025
+ * ShipGuard brand mark.
  *
- * Variants:
- * - "full": Strong Mark + Wordmark (for desktop/larger spaces)
- * - "mark": Strong Mark only (for mobile/compact spaces)
- * - "wordmark": Wordmark only (for specific cases)
+ * A shield outline whose interior is a checkmark — "guard" (the shield)
+ * fused with "ship" (the check that the work landed). Drawn as a single
+ * currentColor path so it inherits the lemon accent anywhere it's used,
+ * and it stays legible down to 16px for the favicon.
  */
 
 import React from 'react';
@@ -23,9 +22,11 @@ interface LogoProps {
 
 const sizeMap = {
   sm: { mark: 'w-5 h-5', text: 'text-base' },
-  md: { mark: 'w-6 h-6', text: 'text-xl' },
+  md: { mark: 'w-6 h-6', text: 'text-lg' },
   lg: { mark: 'w-8 h-8', text: 'text-2xl' },
 };
+
+const WORDMARK = 'ShipGuard';
 
 export function Logo({
   variant = 'full',
@@ -36,35 +37,45 @@ export function Logo({
   const colorClass = theme === 'dark' ? 'text-foreground' : 'text-background';
   const { mark: markSize, text: textSize } = sizeMap[size];
 
-  // GenLayer Strong Mark (Triangle/Hands symbol)
-  const StrongMark = () => (
+  // Shield with an inset checkmark.
+  const ShieldMark = () => (
     <svg
-      className={`${markSize} ${colorClass} transition-colors`}
-      viewBox="0 0 97.76 91.93"
+      className={`${markSize} transition-colors`}
+      viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
-      aria-label="GenLayer Logo"
+      aria-label="ShipGuard"
+      role="img"
+      fill="none"
     >
       <path
-        fill="currentColor"
-        d="M44.26 32.35L27.72 67.12L43.29 74.9L0 91.93L44.26 0L44.26 32.35ZM53.5 32.35L70.04 67.12L54.47 74.9L97.76 91.93L53.5 0L53.5 32.35ZM48.64 43.78L58.33 62.94L48.64 67.69L39.47 62.92L48.64 43.78Z"
+        d="M12 2.5 4.5 5.4v6.1c0 4.6 3.1 8.5 7.5 9.9 4.4-1.4 7.5-5.3 7.5-9.9V5.4L12 2.5Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m8.6 11.9 2.4 2.4 4.4-4.6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
 
-  // Wordmark (using Space Grotesk from layout)
   const Wordmark = () => (
     <span
       className={`${textSize} font-bold ${colorClass} font-[family-name:var(--font-display)] transition-colors`}
       style={{ letterSpacing: '-0.02em' }}
     >
-      GenLayer
+      {WORDMARK}
     </span>
   );
 
   if (variant === 'mark') {
     return (
       <div className={`inline-flex items-center ${className}`}>
-        <StrongMark />
+        <ShieldMark />
       </div>
     );
   }
@@ -77,16 +88,14 @@ export function Logo({
     );
   }
 
-  // Full logo (default): Strong Mark + Wordmark
   return (
     <div className={`inline-flex items-center gap-2 ${className}`}>
-      <StrongMark />
+      <ShieldMark />
       <Wordmark />
     </div>
   );
 }
 
-// Convenience components for common use cases
 export function LogoFull(props: Omit<LogoProps, 'variant'>) {
   return <Logo {...props} variant="full" />;
 }

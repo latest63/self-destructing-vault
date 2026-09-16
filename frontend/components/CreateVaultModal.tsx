@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Calendar, Users, ArrowLeft, Link, Loader2 } from "lucide-react";
+import { Plus, Calendar, Users, ArrowLeft, Link, Loader2, ShieldCheck } from "lucide-react";
 import { createClient } from "genlayer-js";
 import { useInvalidateVaultsData } from "@/lib/hooks/useVault";
 import {
@@ -93,14 +93,14 @@ export function CreateVaultModal() {
         fees: cvFees,
       });
 
-      success("Fund opened successfully!", {
+      success("Raise launched", {
         description: `Fund ${id} is live. Backers can now pledge GEN to it.`,
       });
       invalidateVaultsData();
       resetForm();
       setIsOpen(false);
     } catch (e: any) {
-      error("Failed to open fund", {
+      error("Could not launch raise", {
         description: e?.message || "The transaction could not be submitted.",
       });
     } finally {
@@ -199,14 +199,15 @@ export function CreateVaultModal() {
       <DialogTrigger asChild>
         <Button variant="gradient" disabled={!isConnected || !address || isLoading}>
           <Plus className="w-4 h-4 mr-2" />
-          Open Fund
+          Launch a raise
         </Button>
       </DialogTrigger>
       <DialogContent className="brand-card border-2 sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Open a ShipGuard Fund</DialogTitle>
-          <DialogDescription>
-            Define the team's commitments, the check URL, and the deadline. Backers pledge; the AI settles it.
+          <DialogTitle className="text-xl font-bold">Launch a raise</DialogTitle>
+          <DialogDescription className="text-sm leading-relaxed">
+            Set the milestones, the evidence URL, and the close date. Backers
+            pledge into escrow — the AI settles it against the evidence.
           </DialogDescription>
         </DialogHeader>
 
@@ -224,12 +225,12 @@ export function CreateVaultModal() {
               Back
             </Button>
 
-            <div className="space-y-2 rounded-lg bg-muted/50 p-4 text-sm">
-              <p className="font-semibold">Review</p>
+            <div className="space-y-2.5 rounded-sm border border-border bg-muted/50 p-5 text-sm">
+              <p className="eyebrow">Review</p>
               <p><span className="text-muted-foreground">Team:</span> {teamAddress}</p>
-              <p><span className="text-muted-foreground">Deadline:</span> {new Date(deadline).toLocaleString()}</p>
-              <p><span className="text-muted-foreground">Commitments:</span> {condition}</p>
-              <p className="break-all"><span className="text-muted-foreground">Verification URL:</span> {checkUrl}</p>
+              <p><span className="text-muted-foreground">Close date:</span> {new Date(deadline).toLocaleString()}</p>
+              <p><span className="text-muted-foreground">Milestones:</span> {condition}</p>
+              <p className="break-all"><span className="text-muted-foreground">Evidence URL:</span> {checkUrl}</p>
             </div>
 
             <p className="text-xs text-muted-foreground">
@@ -247,10 +248,10 @@ export function CreateVaultModal() {
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Opening fund…
+                  Launching…
                 </>
               ) : (
-                "Confirm & Open Fund"
+                "Launch raise"
               )}
             </Button>
           </div>
@@ -259,8 +260,8 @@ export function CreateVaultModal() {
           {/* Team Address */}
           <div className="space-y-2">
             <Label htmlFor="teamAddress" className="flex items-center gap-2">
-              <Users className="w-4 h-4 !text-white" />
-              Team Address
+              <Users className="w-4 h-4 text-primary" />
+              Team wallet
             </Label>
             <Input
               id="teamAddress"
@@ -281,8 +282,8 @@ export function CreateVaultModal() {
           {/* Deadline */}
           <div className="space-y-2">
             <Label htmlFor="deadline" className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 !text-white" />
-              Deadline
+              <Calendar className="w-4 h-4 text-primary" />
+              Close date
             </Label>
             <Input
               id="deadline"
@@ -302,13 +303,13 @@ export function CreateVaultModal() {
           {/* Condition */}
           <div className="space-y-2">
             <Label htmlFor="condition" className="flex items-center gap-2">
-              <Link className="w-4 h-4 !text-white" />
-              Commitments
+              <ShieldCheck className="w-4 h-4 text-primary" />
+              Milestones
             </Label>
             <Input
               id="condition"
               type="text"
-              placeholder="e.g., The project ships v1 and publishes a public changelog"
+              placeholder="e.g., Ships v1 and publishes a public changelog"
               value={condition}
               onChange={(e) => {
                 setCondition(e.target.value);
@@ -324,8 +325,8 @@ export function CreateVaultModal() {
           {/* Check URL */}
           <div className="space-y-2">
             <Label htmlFor="checkUrl" className="flex items-center gap-2">
-              <Link className="w-4 h-4 !text-white" />
-              Verification URL
+              <Link className="w-4 h-4 text-primary" />
+              Evidence URL
             </Label>
             <Input
               id="checkUrl"

@@ -163,10 +163,10 @@ export function VaultList() {
 
   if (isLoading) {
     return (
-      <div className="brand-card p-8 flex items-center justify-center">
+      <div className="brand-card p-10 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-accent" />
-          <p className="text-sm text-muted-foreground">Loading funds...</p>
+          <p className="text-sm text-muted-foreground">Loading raises...</p>
         </div>
       </div>
     );
@@ -206,9 +206,10 @@ export function VaultList() {
       <div className="brand-card p-12">
         <div className="text-center space-y-3">
           <Vault className="w-16 h-16 mx-auto text-muted-foreground opacity-30" />
-          <h3 className="text-xl font-bold">No Funds Yet</h3>
-          <p className="text-muted-foreground">
-            Be the first to open an ecosystem fund!
+          <h3 className="text-xl font-bold">No live raises yet</h3>
+          <p className="text-muted-foreground max-w-sm mx-auto">
+            Nothing is raising right now. Launch the first raise and let your
+            community back what you&apos;re building.
           </p>
         </div>
       </div>
@@ -236,8 +237,8 @@ export function VaultList() {
       <Dialog open={!!actionVaultId} onOpenChange={(open) => !open && setActionVaultId(null)}>
         <DialogContent className="brand-card border-2 sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">
-              {actionType === "deposit" ? "Pledge Funds" : actionType === "release" ? "Release to Team" : "Refund Backers"}
+            <DialogTitle className="text-xl font-bold">
+              {actionType === "deposit" ? "Back this raise" : actionType === "release" ? "Release to team" : "Refund backers"}
             </DialogTitle>
             <DialogDescription>
               Review the transaction details and approve.
@@ -331,32 +332,32 @@ function VaultCard({ vault, checkUrl, currentAddress, isConnected, isWalletLoadi
   };
 
   return (
-    <div className="brand-card p-6 animate-fade-in">
-      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+    <div className="brand-card p-6 md:p-8 animate-fade-in">
+      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
         {/* Vault Info */}
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 space-y-4">
           <div className="flex items-center gap-3">
-            <h3 className="text-lg font-semibold">Fund #{vault.id}</h3>
+            <h3 className="text-lg font-semibold">Raise #{vault.id}</h3>
             {getStatusBadge()}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div className="space-y-1">
-              <span className="text-muted-foreground">Commitments:</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+            <div className="space-y-1.5">
+              <span className="eyebrow block">Milestones</span>
               <p className="font-medium">{vault.condition}</p>
             </div>
-            <div className="space-y-1">
-              <span className="text-muted-foreground">Settlement Deadline:</span>
+            <div className="space-y-1.5">
+              <span className="eyebrow block">Close date</span>
               <p className="font-medium">{deadlineDate.toLocaleDateString()}</p>
             </div>
-            <div className="space-y-1">
-              <span className="text-muted-foreground">Receiving Team:</span>
+            <div className="space-y-1.5">
+              <span className="eyebrow block">Team</span>
               <div className="flex items-center gap-2">
                 <AddressDisplay address={vault.team_address} maxLength={10} showCopy={true} />
               </div>
             </div>
-            <div className="space-y-1">
-              <span className="text-muted-foreground">Total Pledged:</span>
+            <div className="space-y-1.5">
+              <span className="eyebrow block">Raised</span>
               <p className="font-medium text-accent">{formatAmount(vault.total_deposited)} GEN</p>
             </div>
           </div>
@@ -364,20 +365,20 @@ function VaultCard({ vault, checkUrl, currentAddress, isConnected, isWalletLoadi
           {/* Verdict Display */}
           {/* Verdict — string ("success" | "failure" | "") per contract */}
           {vault.verdict && (
-            <div className="mt-3 p-3 rounded-lg bg-muted/50">
-              <span className="text-muted-foreground text-sm">Verdict: </span>
+            <div className="mt-1 p-4 rounded-sm bg-muted/50 border border-border">
+              <span className="eyebrow block mb-1.5">Verdict</span>
               <span className={`font-semibold ${vault.verdict === "success" ? "text-green-400" : "text-red-400"}`}>
                 {vault.verdict === "success" ? "Commitments Met — releases to team" : "Commitments Missed — refunds backers"}
               </span>
               {vault.verdict_reason && (
-                <p className="mt-1 text-xs text-muted-foreground">{vault.verdict_reason}</p>
+                <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{vault.verdict_reason}</p>
               )}
             </div>
           )}
 
           {/* Check URL lives on the ConditionGovernor, not the vault */}
           {checkUrl && (
-            <div className="mt-2">
+            <div className="mt-1">
               <a
                 href={checkUrl}
                 target="_blank"
@@ -385,14 +386,14 @@ function VaultCard({ vault, checkUrl, currentAddress, isConnected, isWalletLoadi
                 className="inline-flex items-center gap-1 text-sm text-accent hover:underline"
               >
                 <ExternalLink className="w-3 h-3" />
-                View Condition Check
+                View evidence
               </a>
             </div>
           )}
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col gap-2 min-w-[120px]">
+        <div className="flex flex-col gap-2 lg:w-40 shrink-0">
           {isActive && (
             <>
               <Button
@@ -405,10 +406,10 @@ function VaultCard({ vault, checkUrl, currentAddress, isConnected, isWalletLoadi
                 {isActing && actionType === "deposit" ? (
                   <>
                     <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                    Pledging...
+                    Backing...
                   </>
                 ) : (
-                  "Pledge"
+                  "Back this raise"
                 )}
               </Button>
 
@@ -429,7 +430,7 @@ function VaultCard({ vault, checkUrl, currentAddress, isConnected, isWalletLoadi
                       Releasing...
                     </>
                   ) : (
-                    "Release to Team"
+                    "Release to team"
                   )}
                 </Button>
               ) : (

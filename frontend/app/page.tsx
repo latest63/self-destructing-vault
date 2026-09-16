@@ -7,6 +7,7 @@ import { fetchRaises, type ShippingRaise } from "@/lib/raises";
 import { Coins, ShieldCheck, Gavel } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 const STEPS = [
   {
@@ -71,12 +72,20 @@ const ROADMAP = [
 
 export default function HomePage() {
   const [raises, setRaises] = useState<ShippingRaise[]>([]);
+  const { openConnectModal } = useConnectModal();
 
   useEffect(() => {
     fetchRaises().then(setRaises).catch(() => {
       // Fallback handled in fetchRaises
     });
   }, []);
+
+  // Open wallet connect modal for backing a raise
+  const handleBackRaise = () => {
+    if (openConnectModal) {
+      openConnectModal();
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -103,8 +112,9 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-12">
               <CreateVaultModal />
               <Button
-                variant="secondary"
+                variant="gradient"
                 size="default"
+                onClick={handleBackRaise}
               >
                 Back a raise
               </Button>

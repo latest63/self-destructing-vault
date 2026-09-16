@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Calendar, Users, ArrowLeft, Link, Loader2, ShieldCheck } from "lucide-react";
+import { Rocket, Calendar, Users, ArrowLeft, Link, Loader2, ShieldCheck } from "lucide-react";
 import { createClient } from "genlayer-js";
 import { useInvalidateVaultsData } from "@/lib/hooks/useVault";
 import {
@@ -196,12 +196,12 @@ export function CreateVaultModal() {
     setIsOpen(open);
   };
 
-  // Handle "Launch a raise" button click - open wallet connect if not connected
-  const handleLaunchClick = () => {
+// Handle "Launch a raise" button click - open wallet connect if not connected
+  const handleLaunchClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!isConnected) {
-      if (openConnectModal) {
-        openConnectModal();
-      }
+      openConnectModal?.();
     } else {
       setIsOpen(true);
     }
@@ -209,17 +209,15 @@ export function CreateVaultModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button 
-          variant="gradient" 
-          disabled={isLoading}
-          onClick={handleLaunchClick}
-          className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Launch a raise
-        </Button>
-      </DialogTrigger>
+      <Button 
+        variant="gradient" 
+        disabled={isLoading}
+        onClick={handleLaunchClick}
+        className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+      >
+        <Rocket className="w-4 h-4 mr-2" />
+        Launch a raise
+      </Button>
       <DialogContent className="brand-card border-2 sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Launch a raise</DialogTitle>

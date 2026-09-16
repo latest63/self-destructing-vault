@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { CreateVaultModal } from "@/components/CreateVaultModal";
 import { RaiseCarousel } from "@/components/RaiseCarousel";
 import { fetchRaises, type ShippingRaise } from "@/lib/raises";
-import { Coins, ShieldCheck, Gavel } from "lucide-react";
+import { Coins, ShieldCheck, Gavel, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
@@ -114,7 +114,9 @@ export default function HomePage() {
                 variant="gradient"
                 size="default"
                 onClick={handleBackRaise}
+                className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
+                <ArrowUpRight className="w-4 h-4 mr-2" />
                 Back a raise
               </Button>
             </div>

@@ -27,6 +27,16 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 const hasSupabase = Boolean(supabaseUrl && supabaseKey);
 
+/**
+ * Logokit logo CDN — hotlink logos by domain.
+ */
+const LOGOKIT_TOKEN = "pk_frad691a1b3c096564b21c";
+const LOGOKIT_BASE = "https://img.logokit.com";
+
+function logokitUrl(domain: string): string {
+  return `${LOGOKIT_BASE}/${domain}?token=${LOGOKIT_TOKEN}`;
+}
+
 const SEED_RAISES: ShippingRaise[] = [
   {
     id: "amazon",
@@ -34,7 +44,7 @@ const SEED_RAISES: ShippingRaise[] = [
     tagline: "Supply chain AI",
     initials: "AM",
     tint: "#ff9900",
-    logo_url: "/logos/AMZN.png",
+    logo_url: logokitUrl("amazon.com"),
     raised: "4.20M",
     progress: 84,
     closes_on: "2026-11-02",
@@ -46,7 +56,7 @@ const SEED_RAISES: ShippingRaise[] = [
     tagline: "AI chip infrastructure",
     initials: "AP",
     tint: "#a3a3a3",
-    logo_url: "/logos/AAPL.png",
+    logo_url: logokitUrl("apple.com"),
     raised: "6.85M",
     progress: 96,
     closes_on: "2026-10-18",
@@ -58,7 +68,7 @@ const SEED_RAISES: ShippingRaise[] = [
     tagline: "AI data labeling",
     initials: "TE",
     tint: "#e82127",
-    logo_url: "/logos/TSLA.png",
+    logo_url: logokitUrl("tesla.com"),
     raised: "3.10M",
     progress: 71,
     closes_on: "2026-12-05",
@@ -70,7 +80,7 @@ const SEED_RAISES: ShippingRaise[] = [
     tagline: "AI verification pipeline",
     initials: "GO",
     tint: "#4285f4",
-    logo_url: "/logos/GOOGL.png",
+    logo_url: logokitUrl("google.com"),
     raised: "5.40M",
     progress: 89,
     closes_on: "2026-11-21",
@@ -82,7 +92,7 @@ const SEED_RAISES: ShippingRaise[] = [
     tagline: "Compute infrastructure",
     initials: "NV",
     tint: "#76b900",
-    logo_url: "/logos/NVDA.png",
+    logo_url: logokitUrl("nvidia.com"),
     raised: "7.60M",
     progress: 93,
     closes_on: "2026-10-30",
@@ -94,7 +104,7 @@ const SEED_RAISES: ShippingRaise[] = [
     tagline: "Azure ML compute",
     initials: "MS",
     tint: "#00a4ef",
-    logo_url: "/logos/MSFT.png",
+    logo_url: logokitUrl("microsoft.com"),
     raised: "2.95M",
     progress: 64,
     closes_on: "2026-12-14",
@@ -106,7 +116,7 @@ const SEED_RAISES: ShippingRaise[] = [
     tagline: "AR/VR research",
     initials: "ME",
     tint: "#0866ff",
-    logo_url: "/logos/META.png",
+    logo_url: logokitUrl("meta.com"),
     raised: "4.75M",
     progress: 78,
     closes_on: "2026-11-09",
@@ -118,7 +128,7 @@ const SEED_RAISES: ShippingRaise[] = [
     tagline: "Space AI systems",
     initials: "SX",
     tint: "#005288",
-    logo_url: "/logos/SPCE.png",
+    logo_url: logokitUrl("spacex.com"),
     raised: "8.20M",
     progress: 91,
     closes_on: "2026-10-25",

@@ -110,12 +110,8 @@ export function CreateVaultModal() {
     }
   };
 
-  // Auto-close modal when wallet disconnects
-  useEffect(() => {
-    if (!isConnected && isOpen && step === "form") {
-      setIsOpen(false);
-    }
-  }, [isConnected, isOpen, step]);
+  // Note: we no longer auto-close when disconnected, because the form is
+  // viewable/fillable without a wallet — the connect check happens at submit.
 
   const validateForm = (): boolean => {
     const newErrors = {
@@ -155,7 +151,8 @@ export function CreateVaultModal() {
     e.preventDefault();
 
     if (!isConnected || !address) {
-      error("Please connect your wallet first");
+      // Prompt to connect via RainbowKit — don't just error out.
+      openConnectModal?.();
       return;
     }
 
@@ -196,16 +193,21 @@ export function CreateVaultModal() {
     setIsOpen(open);
   };
 
-// Handle "Launch a raise" button click - open wallet connect if not connected
+// Handle "Launch a raise" button click - always open the form.
+// The wallet is only required at submit time, not to view the form.
   const handleLaunchClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isConnected) {
-      openConnectModal?.();
-    } else {
-      setIsOpen(true);
-    }
+    setIsOpen(true);
   };
+
+  // Allow other components (e.g. the Navbar menu) to open the form
+  // without navigating — dispatches the shared custom event.
+  useEffect(() => {
+    const onOpen = () => setIsOpen(true);
+    window.addEventListener("shipguard:open-launch", onOpen);
+    return () => window.removeEventListener("shipguard:open-launch", onOpen);
+  }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>

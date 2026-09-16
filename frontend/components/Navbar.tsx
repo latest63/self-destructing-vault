@@ -51,7 +51,15 @@ export function Navbar() {
         router.push("/explore");
         break;
       case "launch":
-        router.push("/");
+        // Navigate to landing if not already there, then trigger the Launch
+        // form to open. The CreateVaultModal on the landing page listens for
+        // this event; a short delay ensures it has mounted when navigating.
+        const isOnLanding = window.location.pathname === "/";
+        if (!isOnLanding) router.push("/");
+        setTimeout(
+          () => window.dispatchEvent(new Event("shipguard:open-launch")),
+          isOnLanding ? 0 : 200
+        );
         break;
       case "disconnect":
         disconnect();
@@ -59,7 +67,8 @@ export function Navbar() {
     }
   };
 
-  // Menu items based on wallet state
+  // Menu items based on wallet state — "Launch a raise" is always available,
+  // since the form can be viewed/filled without a wallet (connect at submit).
   const menuItems: NavItem[] = isConnected
     ? [
         { label: "Explore raises", icon: Compass, action: "explore" },
@@ -69,6 +78,7 @@ export function Navbar() {
       ]
     : [
         { label: "Explore raises", icon: Compass, action: "explore" },
+        { label: "Launch a raise", icon: Rocket, action: "launch" },
         { label: "Connect wallet", icon: Wallet, action: "connect" },
       ];
 

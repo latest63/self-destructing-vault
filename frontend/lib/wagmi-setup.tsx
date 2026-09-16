@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Wagmi + RainbowKit setup — copied from Ecosystem Fund Guardian project.
+ * Wagmi + RainbowKit setup — styled for ShipGuard's lemon UI theme.
  *
  * Uses the same projectId as EFG so WalletConnect relay works out of the box.
  */
@@ -9,7 +9,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConfig, http } from "wagmi";
 import { WagmiProvider } from "wagmi";
-import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { getDefaultWallets, RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/dist/styles.css";
 import { studioDevnet } from "genlayer-js/chains";
 import { GENLAYER_CHAIN } from "@/lib/genlayer/network";
@@ -33,11 +33,18 @@ export const wagmiConfig = createConfig({
 
 export const queryClient = new QueryClient();
 
+/** Custom theme matching ShipGuard's lemon UI: lime #d4ff00 on black */
+const shipguardTheme = darkTheme({
+  accentColor: "var(--primary, #d4ff00)",
+  accentColorForeground: "#000",
+  borderRadius: "large",
+});
+
 export function WagmiProviders({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>{children}</RainbowKitProvider>
+        <RainbowKitProvider theme={shipguardTheme}>{children}</RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

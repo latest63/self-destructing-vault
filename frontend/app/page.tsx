@@ -9,43 +9,43 @@ const STEPS = [
   {
     icon: Coins,
     label: "Open a raise",
-    body: "Set the team's wallet, the condition, the evidence URL, and the close date. Those four things are the whole contract.",
+    body: "A raise is an escrowed funding round with one condition, one evidence URL, and a close date. Backers lock GEN until verification.",
   },
   {
     icon: ShieldCheck,
     label: "Backers deposit",
-    body: "Anyone can deposit GEN into the raise. It sits in the contract — the team cannot touch it until the condition is verified.",
+    body: "Investors contribute GEN to the raise. Funds are held in escrow — the team cannot access them until the condition passes verification.",
   },
   {
     icon: Gavel,
     label: "Verify and settle",
-    body: "At the close date, GenLayer's AI reads the evidence URL. Condition met — funds release to the team. Not met — every backer refunds.",
+    body: "At the close date, GenLayer AI validates the evidence URL. Pass → funds release. Fail → every backer receives a refund.",
   },
 ];
 
 const TIMELINE = [
-  { label: "Open the raise", detail: "Condition + date" },
-  { label: "Backers deposit", detail: "GEN into the raise" },
-  { label: "AI reads evidence", detail: "Checks the URL" },
-  { label: "Release or refund", detail: "One of two exits" },
+  { label: "Open the raise", detail: "Set condition + close date" },
+  { label: "Backers deposit", detail: "GEN locked in escrow" },
+  { label: "AI reads evidence", detail: "Verifies against condition" },
+  { label: "Release or refund", detail: "Automated settlement" },
 ];
 
-// ShipGuard's own roadmap — the product, not any individual raise.
+// ShipGuard roadmap — product milestones, not individual raises.
 const ROADMAP = [
   {
     status: "Shipped",
     title: "Escrowed raises",
-    body: "A team opens a raise with one condition, one evidence URL, and a close date. Backers deposit GEN into the contract.",
+    body: "Deploy a raise with one condition, one evidence URL, and a close date. Backers deposit GEN into the escrow. No team access until verification.",
   },
   {
     status: "Shipped",
     title: "AI-verified settlement",
-    body: "GenLayer validators read the evidence URL and settle to one of two endings — release to the team, or refund every backer.",
+    body: "GenLayer validators read the evidence URL and settle to one of two outcomes — release funds to the team, or refund every backer.",
   },
   {
     status: "Shipped",
     title: "Refund safety net",
-    body: "Past the close date, backers can always withdraw. A team that goes quiet cannot hold the funds.",
+    body: "After the close date, backers can always claim their refund. A team that goes silent cannot hold the funds.",
   },
   {
     status: "Next",
@@ -76,19 +76,17 @@ export default async function HomePage() {
         {/* ── Hero ─────────────────────────────────────────── */}
         <section className="shell pt-16 pb-12 md:pt-24 md:pb-16">
           <div className="max-w-3xl">
-            <p className="eyebrow mb-4">Escrowed funding on GenLayer</p>
+            <p className="eyebrow mb-4">AI-verified fundraising on GenLayer</p>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight mb-5">
-              Money that only
+              Capital that only
               <br />
               moves when the{" "}
-              <span className="text-primary">work does</span>.
+              <span className="text-primary">work ships</span>.
             </h1>
 
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl mb-8">
-              One contract sets a condition, an evidence URL, and a close date.
-              Backers deposit GEN. When the work ships, funds release — otherwise
-              they refund. No middleman, no guesswork.
+              Deploy an escrowed raise with a condition and close date. Investors lock GEN. AI validates at deadline. Pass = release funds. Fail = auto-refund.
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-12">
@@ -136,7 +134,7 @@ export default async function HomePage() {
             <div>
               <h2 className="text-2xl font-bold mb-1">Open raises</h2>
               <p className="text-sm text-muted-foreground">
-                Live raises on ShipGuard, by amount committed.
+                Live escrowed funding rounds on ShipGuard.
               </p>
             </div>
           </div>
@@ -149,7 +147,7 @@ export default async function HomePage() {
           <div className="shell section">
             <p className="eyebrow mb-3">How it works</p>
             <h2 className="text-2xl md:text-3xl font-bold mb-10 max-w-2xl">
-              Three steps, one escrow, two possible endings.
+              Three stages, one escrow, two automated outcomes.
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border border border-border">
@@ -180,6 +178,47 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ── Roadmap ─────────────────────────────────────── */}
+        <section className="border-t border-border">
+          <div className="shell section">
+            <p className="eyebrow mb-3">Roadmap</p>
+            <h2 className="text-2xl md:text-3xl font-bold mb-10 max-w-2xl">
+              ShipGuard's development milestones.
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {ROADMAP.map((item) => (
+                <div
+                  key={item.title}
+                  className={`p-4 border rounded-lg ${
+                    item.status === "Shipped"
+                      ? "border-primary bg-primary/5"
+                      : "border-border"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                        item.status === "Shipped"
+                          ? "bg-primary text-background"
+                          : "bg-border text-muted-foreground"
+                      }`}
+                    >
+                      {item.status}
+                    </span>
+                    <h3 className="text-sm font-semibold">
+                      {item.title}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {item.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       </main>
 
       {/* ── Footer ───────────────────────────────────────── */}
@@ -187,7 +226,7 @@ export default async function HomePage() {
         <div className="shell py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground">
-              ShipGuard — escrowed raises for teams that ship.
+              ShipGuard — AI-verified escrow for teams that ship.
             </p>
             <nav className="flex items-center gap-5 text-xs text-muted-foreground">
               <a

@@ -25,8 +25,31 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
-/** Generate an inline SVG badge for a company */
-function CompanyBadge({ initials, tint }: { initials: string; tint: string }) {
+/** Render a company logo or fallback to branded badge */
+function CompanyLogo({ logo, initials, tint }: { logo?: string; initials: string; tint: string }) {
+  // Prefer real logo if available
+  if (logo) {
+    return (
+      <img
+        src={logo}
+        alt=""
+        className="w-10 h-10 object-contain"
+        draggable={false}
+        onError={(e) => {
+          // Fallback to badge on error
+          const target = e.currentTarget;
+          const svg = `data:image/svg+xml;base64,${btoa(
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" fill="${tint}" />
+              <text x="50" y="58" font-family="JetBrains Mono,Arial,monospace" font-size="32" font-weight="600" fill="#000" text-anchor="middle">${initials}</text>
+            </svg>`
+          )}`;
+          target.src = svg;
+        }}
+      />
+    );
+  }
+  // Fallback to inline SVG badge
   const svg = `data:image/svg+xml;base64,${btoa(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
       <circle cx="50" cy="50" r="45" fill="${tint}" />
@@ -52,11 +75,11 @@ function RaiseCard({ raise }: { raise: ShippingRaise }) {
 
   return (
     <article className="raise-card group">
-      {/* Company mark - inline SVG badge */}
+      {/* Company mark - logo or badge fallback */}
       <div className="flex items-start justify-between gap-3 mb-5">
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-10 h-10 bg-background border border-border rounded">
-            <CompanyBadge initials={raise.initials} tint={raise.tint} />
+            <CompanyLogo logo={raise.logo_url} initials={raise.initials} tint={raise.tint} />
           </div>
           <div>
             <h3 className="text-sm font-semibold leading-tight">

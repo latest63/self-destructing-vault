@@ -7,7 +7,7 @@ import { fetchRaises, type ShippingRaise } from "@/lib/raises";
 import { Coins, ShieldCheck, Gavel } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useRouter } from "next/navigation";
 
 const STEPS = [
   {
@@ -71,7 +71,7 @@ const ROADMAP = [
 
 export default function HomePage() {
   const [raises, setRaises] = useState<ShippingRaise[]>([]);
-  const { openConnectModal } = useConnectModal();
+  const router = useRouter();
 
   useEffect(() => {
     fetchRaises().then(setRaises).catch(() => {
@@ -79,11 +79,8 @@ export default function HomePage() {
     });
   }, []);
 
-  // Open wallet connect modal for backing a raise
   const handleBackRaise = () => {
-    if (openConnectModal) {
-      openConnectModal();
-    }
+    router.push("/explore");
   };
 
   return (

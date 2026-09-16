@@ -4,14 +4,22 @@ import "@genlayer/transaction-kit-react/styles.css";
 import "./globals.css";
 import { Providers } from "./providers";
 
+// Typography ported from the Ecosystem Fund Guardian lemon design system.
+// Both families load as variable fonts, so the full weight range is
+// self-hosted and preloaded — Inter covers headings (100-900) and
+// JetBrains Mono covers body/UI (100-800), including the font-bold (700)
+// used throughout. EFG loaded the same two from Google Fonts as static
+// weights; this replaces that with no external request and no FOUT.
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
+  weight: "variable",
   variable: "--font-jetbrains-mono",
   display: "swap",
 });
 
 const inter = Inter({
   subsets: ["latin"],
+  weight: "variable",
   variable: "--font-inter",
   display: "swap",
 });

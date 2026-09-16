@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
-/* Lemon theme typography: JetBrains Mono (body/UI) + Inter (headings),
-   loaded via next/font in app/layout.tsx which sets --font-jetbrains-mono
-   and --font-inter on <body>. Fallbacks cover the pre-hydration paint. */
+/* Lemon theme typography, ported from the Ecosystem Fund Guardian design
+   system: JetBrains Mono for body/UI, Inter for headings.
+
+   Loaded via next/font in app/layout.tsx as VARIABLE fonts, so every
+   weight is available (Inter 100-900, JetBrains Mono 100-800) and gets
+   self-hosted with the files preloaded in <head>. The EFG app fetched
+   the same two families from Google Fonts as discrete static weights
+   (Inter 400/500/600/700, JBM 400/500/600); next/font supersedes that
+   with no external request, no FOUT, and a wider weight range.
+
+   Fallbacks cover the pre-hydration paint. */
 
 @custom-variant dark (&:is(.dark *));
 

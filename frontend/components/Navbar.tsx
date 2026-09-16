@@ -23,7 +23,7 @@ export function Navbar() {
         className={`
           border-b transition-all duration-300
           ${isScrolled
-            ? "bg-black/85 backdrop-blur-xl border-border"
+            ? "bg-black/80 backdrop-blur-xl border-border"
             : "bg-transparent border-transparent"
           }
         `}

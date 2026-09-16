@@ -15,6 +15,7 @@ export interface ShippingRaise {
   tagline: string;
   initials: string;
   tint: string;
+  logo_url?: string;
   raised: string;
   progress: number;
   closes_on: string;

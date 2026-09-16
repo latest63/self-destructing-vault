@@ -34,16 +34,25 @@ function RaiseCard({ raise }: { raise: ShippingRaise }) {
 
   return (
     <article className="raise-card group">
-      {/* Company mark */}
+      {/* Company mark - logo image if available, else initials badge */}
       <div className="flex items-start justify-between gap-3 mb-5">
         <div className="flex items-center gap-3">
-          <span
-            className="raise-logo"
-            style={{ background: raise.tint }}
-            aria-hidden="true"
-          >
-            {raise.initials}
-          </span>
+          {raise.logo_url ? (
+            <img
+              src={raise.logo_url}
+              alt={`${raise.company} logo`}
+              className="w-10 h-10 object-contain bg-background border border-border rounded"
+              onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+            />
+          ) : (
+            <span
+              className="raise-logo"
+              style={{ background: raise.tint }}
+              aria-hidden="true"
+            >
+              {raise.initials}
+            </span>
+          )}
           <div>
             <h3 className="text-sm font-semibold leading-tight">
               {raise.company}

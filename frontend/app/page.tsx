@@ -3,6 +3,7 @@ import { CreateVaultModal } from "@/components/CreateVaultModal";
 import { RaiseCarousel } from "@/components/RaiseCarousel";
 import { fetchRaises } from "@/lib/raises";
 import { Coins, ShieldCheck, Gavel } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const STEPS = [
   {
@@ -92,6 +93,14 @@ export default async function HomePage() {
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-12">
               <CreateVaultModal />
+              <Button
+                variant="secondary"
+                size="default"
+                disabled
+                className="cursor-default"
+              >
+                Back a raise
+              </Button>
             </div>
 
             {/* The contract, in four steps */}

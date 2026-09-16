@@ -27,12 +27,33 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ShipGuard",
   description:
-    "Escrowed funding for teams. A team opens a raise with a condition, an evidence URL, and a close date. Backers deposit GEN. At the close date GenLayer's AI reads the evidence — condition met, the funds release to the team; not met, every backer is refunded.",
+    "AI-verified escrow for teams to raise capital. Deploy a raise with a condition, evidence URL, and close date. Backers lock GEN. AI validates at deadline. Pass = release funds. Fail = auto-refund.",
   manifest: "/site.webmanifest",
+  metadataBase: new URL("https://shipguard-pad.vercel.app"),
   icons: {
-    icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+  },
+  openGraph: {
+    title: "ShipGuard — AI-verified fundraising",
+    description:
+      "Deploy an escrowed raise with a condition and close date. Investors lock GEN. AI validates at deadline. Pass = release funds. Fail = auto-refund.",
+    url: "https://shipguard-pad.vercel.app",
+    siteName: "ShipGuard",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "ShipGuard AI-verified fundraising on GenLayer",
+      },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ShipGuard — AI-verified fundraising on GenLayer",
+    description:
+      "Deploy an escrowed raise with a condition and close date. Investors lock GEN. AI validates at deadline. Pass = release funds. Fail = auto-refund.",
+    images: ["/og-image.png"],
   },
 };
 

@@ -1,6 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="657 472 59 46" width="64" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="#000000">
   <title>ShipGuard</title>
-  <!-- ShipGuard brand glyph — the checkmark from the wordmark, on brand black. -->
-  <rect x="657" y="472" width="59" height="46" fill="#000000"/>
-  <path fill="#b2fb28" d="M6923 5038 l-133 -133 -65 65 -65 64 -45 -44 -45 -44 107 -108 c59 -60 111 -107 115 -106 3 2 88 81 188 177 l181 174 -42 43 c-24 24 -48 44 -54 44 -5 0 -70 -60 -142 -132z" transform="translate(0,793) scale(0.1,-0.1)"/>
+  <circle cx="50" cy="50" r="48" fill="none" stroke="#d4ff00" stroke-width="4"/>
+  <text x="50" y="58" font-family="JetBrains Mono,Arial,monospace" font-size="28" font-weight="700" fill="#d4ff00" text-anchor="middle">SG</text>
 </svg>

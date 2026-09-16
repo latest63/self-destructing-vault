@@ -86,7 +86,9 @@ export default async function HomePage() {
             </h1>
 
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl mb-8">
-              Teams raise on proof, not promises.
+              One contract sets a condition, an evidence URL, and a close date.
+              Backers deposit GEN. When the work ships, funds release — otherwise
+              they refund. No middleman, no guesswork.
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-12">
@@ -96,19 +98,27 @@ export default async function HomePage() {
 
             {/* The contract, in four steps */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border border border-border">
-              {TIMELINE.map((step, i) => (
-                <div key={step.label} className="bg-background p-4">
-                  <div className="eyebrow mb-2">
-                    Step {String(i + 1).padStart(2, "0")}
+              {TIMELINE.map((step, i) => {
+                const isStep4 = i === 3;
+                return (
+                  <div
+                    key={step.label}
+                    className={`bg-background p-4 ${
+                      isStep4 ? "step-highlight" : ""
+                    }`}
+                  >
+                    <div className="eyebrow mb-2">
+                      Step {String(i + 1).padStart(2, "0")}
+                    </div>
+                    <div className="text-sm font-semibold mb-0.5">
+                      {step.label}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {step.detail}
+                    </div>
                   </div>
-                  <div className="text-sm font-semibold mb-0.5">
-                    {step.label}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {step.detail}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
@@ -136,22 +146,19 @@ export default async function HomePage() {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border border border-border">
-              {STEPS.map((step, i) => {
+              {STEPS.map((step) => {
                 const Icon = step.icon;
-                const highlight = i === 1;
                 return (
                   <div
                     key={step.label}
-                    className={`bg-background p-6 md:p-8 ${
-                      highlight ? "step-highlight" : ""
-                    }`}
+                    className="bg-background p-6 md:p-8"
                   >
                     <div className="flex items-center gap-3 mb-4">
-                      <span className={highlight ? "text-primary" : "text-muted-foreground"}>
+                      <span className="text-muted-foreground">
                         <Icon className="w-5 h-5" />
                       </span>
-                      <span className={`eyebrow step-index ${highlight ? "" : "text-muted-foreground"}`}>
-                        {String(i + 1).padStart(2, "0")}
+                      <span className="eyebrow text-muted-foreground step-index">
+                        {step.label.split(" ")[0]}
                       </span>
                     </div>
                     <h3 className="text-base font-semibold mb-2">
@@ -164,12 +171,6 @@ export default async function HomePage() {
                 );
               })}
             </div>
-
-            <p className="text-xs text-muted-foreground mt-6 max-w-2xl leading-relaxed">
-              Nothing settles on its own — someone submits the check, and the
-              close date guarantees backers can always refund if the team goes
-              quiet.
-            </p>
           </div>
         </section>
       </main>

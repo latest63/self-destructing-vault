@@ -25,61 +25,36 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
-/** Inline SVG logos for major tech companies (optimized) */
-const COMPANY_LOGOS: Record<string, string> = {
-  "AM": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjUgMzIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZmOTlwMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogIDxwYXRoIGQ9Im0xMC4yIDBMMCAxMS45aDE1LjVsLTMuNyAxOS41aDExLjJsMy43LTkuOWgxNS41bC0xMS45IDEyLjEgMTEuOSAxMi4xaC0xNCIyTDI2LjggbC0zLjctMTkuNUgyNi44bDExLjkgMTIuMUw1Ny41IDMiaDAxNDIyTDI0LjggMGgxMS42bC0xMS45IDEyLjFMMjMuOCAzM2gxMS42TDM0LjYgMGgxMS42bC0xMS45IDEyLjFMNDUuNiAwSDEwLjJMMjEuMSAwSDEyLjNsMTEuOSAxMi4xTDI3LjggMzNoMTEuNmwxMi4xLTMyaDEyLjJMMjcuOCAwaC0xMi40SDENQzUgMGgxMS42bDExLjkgMTIuMUw1Ny41IDM4aC0xNC4yTDUwLjcgMEgxMC4yaCJvPgo8L3N2Zz4=",
-  "AP": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYTNhM2E2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTE4LjQgMkwxIDJMNy44IDEyLjZsMi4yLTIuMiIvPjxwYXRoIGQ9Ik0xOC40IDIzTDQgMjNMMTQuMiAxNC44TDIwIDE0LjgiLz48cGF0aCBkPSJNMjAuIDEzLjg4TDEyLjMgMjBMMTAuODkgOC40MiIvPjwvc3ZnPg==",
-  "TE": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTgyMTI3IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTE0LjQgN0wxIDNMMTIuNCAxNmwyLjMgMi4xeiIvPjxwYXRoIGQ9Ik0xNC40IDE4TDogMTlMMTQuNCAxNGwxMi44IDEyLjhsLTIuMyAyLjN6Ii8+PHBhdGggZD0iTTQgMjNMMTIuNCAxNmwxMi44IDEyLjhsLTIuMy0yLjN6Ii8+PC9zdmc+",
-  "GO": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNDI4NWY0IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEgN0wxOCAxOEEKMTggN0wxOCAxOCIvPjxwYXRoIGQ9Ik0xOCAxOEMxOCAxOCAxMCAxOCAxMCAxNEwxMCAxNCIvPjxwYXRoIGQ9Ik0xOCAxOEMxOCAxOCAyNCAxNCAyNCAxNCIvPjwvc3ZnPg==",
-  "NV": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNzZiOTAwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEwLjQgN0wxIDJMMTQuNSAxNGwyLjMgMi4zeiIvPjxwYXRoIGQ9Ik0xNC41IDE0TDE1IDIzTDI5IDEzTDI5IDEzIi8+PHBhdGggZD0iTTE1IDIzTDI5IDEzTDI5IDIzIi8+PC9zdmc+",
-  "MS": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDBhNGVmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEgN0wyMCAyMEwxIDJMMTAgMjAiLz48cGF0aCBkPSJNMjAgMjBMMjAgN0wxNSAxNUwyMCAzIi8+PHBhdGggZD0iTTE1IDE1TDI4IDI0TDI4IDE1Ii8+PHBhdGggZD0iTTI4IDE1TDI4IDI0Ii8+PC9zdmc+",
-  "ME": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDg2NmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEgN0wyNCAzbDExIDExVjdBNjQgMWwgMTEgMTEiLz48cGF0aCBkPSJNMjQgMzJMMjQgMTBMTjQgMTBMMjQgMzIvPjwvc3ZnPg==",
-  "SX": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDA1Mjg4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEgN0wyNCAzbDggOHAiLz48cGF0aCBkPSJNMjQgMTJMMjQgMzJMMTggMzJMMTggMjQ2NCAyNCIvPjxwYXRoIGQ9Ik0xOCAyNEwxOCAzMkwxNiAyNCIvPjxwYXRoIGQ9Ik0xNiAyNCAxOCAzMiIvPjwvc3ZnPg==",
-};
-
-/** Render a company logo or fallback to branded badge */
+/**
+ * Render a company logo. Uses the `logo_url` from Supabase when available.
+ * Falls back to a branded initials badge when no logo is provided.
+ */
 function CompanyLogo({ logo, initials, tint }: { logo?: string; initials: string; tint: string }) {
-  // Check if we have a built-in logo
-  const builtinLogo = COMPANY_LOGOS[initials];
-  
-  if (builtinLogo) {
+  const [imgError, setImgError] = useState(false);
+
+  if (logo && !imgError) {
     return (
       <img
-        src={builtinLogo}
+        src={logo}
         alt={`${initials} logo`}
         className="w-10 h-10 object-contain"
-        onError={(e) => {
-          // Still try external logo URL if builtin fails
-          if (logo) {
-            const target = e.currentTarget;
-            target.src = logo;
-            return;
-          }
-          // Final fallback to badge
-          const svg = `data:image/svg+xml;base64,${btoa(
-            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="45" fill="${tint}" />
-              <text x="50" y="58" font-family="JetBrains Mono,Arial,monospace" font-size="32" font-weight="600" fill="#000" text-anchor="middle">${initials}</text>
-            </svg>`
-          )}`;
-          (e.currentTarget as HTMLImageElement).src = svg;
-        }}
+        onError={() => setImgError(true)}
       />
     );
   }
-  
-  // Fallback to branded badge
+
+  // Fallback: colored badge with initials
   const svg = `data:image/svg+xml;base64,${btoa(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
       <circle cx="50" cy="50" r="45" fill="${tint}" />
       <text x="50" y="58" font-family="JetBrains Mono,Arial,monospace" font-size="32" font-weight="600" fill="#000" text-anchor="middle">${initials}</text>
     </svg>`
   )}`;
-  
+
   return (
     <img
       src={svg}
-      alt=""
+      alt={`${initials} fallback`}
       className="w-10 h-10 object-contain rounded"
       draggable={false}
     />

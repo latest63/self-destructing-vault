@@ -4,6 +4,20 @@ import { useState, useEffect } from "react";
 import { AccountPanel } from "./AccountPanel";
 import { WordmarkSVG } from "./Logo";
 import { WalletConnectButton } from "./WalletConnectButton";
+import { useWallet } from "@/lib/genlayer/wallet";
+
+/**
+ * A single wallet control for the navbar.
+ *
+ * Two components used to be rendered here at once — WalletConnectButton and
+ * AccountPanel both drew their own "Connect Wallet" button, so the bar showed
+ * the same action twice. Only one is shown now, picked by connection state.
+ */
+function WalletSlot() {
+  const { isConnected, isLoading } = useWallet();
+  if (isLoading) return <WalletConnectButton />;
+  return isConnected ? <AccountPanel /> : <WalletConnectButton />;
+}
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -27,14 +41,17 @@ export function Navbar() {
         <div className="shell">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Left: brand */}
-            <a href="/" className="flex items-center shrink-0" aria-label="ShipGuard home">
-              <WordmarkSVG height={22} className="text-foreground" />
+            <a
+              href="/"
+              className="flex items-center shrink-0"
+              aria-label="ShipGuard home"
+            >
+              <WordmarkSVG height={15} className="text-foreground" />
             </a>
 
-            {/* Right: actions */}
+            {/* Right: one wallet control */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <WalletConnectButton />
-              <AccountPanel />
+              <WalletSlot />
             </div>
           </div>
         </div>

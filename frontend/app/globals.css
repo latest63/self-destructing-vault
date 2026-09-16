@@ -556,3 +556,135 @@ wui-list-item[data-icon="onramp"] {
   padding: 0 !important;
   overflow: hidden !important;
 }
+
+
+/* ── Open raises carousel ──────────────────────────────────────────── */
+
+.raise-marquee {
+  position: relative;
+  overflow: hidden;
+  /* Fade the band into the page at both ends. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+}
+
+.raise-track {
+  display: flex;
+  gap: 1rem;
+  width: max-content;
+  animation: raise-scroll linear infinite;
+}
+
+/* Pause on hover, and when the user prefers reduced motion. */
+.raise-marquee:hover .raise-track,
+.raise-marquee[data-paused="true"] .raise-track {
+  animation-play-state: paused;
+}
+
+@keyframes raise-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    /* The track holds the set twice, so shifting by half loops seamlessly. */
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .raise-track {
+    animation: none;
+  }
+}
+
+.raise-card {
+  position: relative;
+  width: 264px;
+  flex: 0 0 auto;
+  padding: 1.25rem 1.25rem 1.15rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.raise-card:hover {
+  border-color: color-mix(in oklab, var(--primary) 55%, transparent);
+  transform: translateY(-3px);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--primary) 22%, transparent),
+    0 12px 32px -12px color-mix(in oklab, var(--primary) 30%, transparent);
+}
+
+/* The company mark: a small brand-tinted tile. */
+.raise-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 0.25rem;
+  color: #000;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.raise-verified {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border-radius: 0.25rem;
+  color: var(--primary);
+  border: 1px solid color-mix(in oklab, var(--primary) 35%, transparent);
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+}
+
+.raise-bar {
+  height: 3px;
+  width: 100%;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.raise-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  box-shadow: 0 0 8px color-mix(in oklab, var(--primary) 55%, transparent);
+}
+
+/* ── Highlighted step (lemon glow) ─────────────────────────────────── */
+
+.step-highlight {
+  border-color: color-mix(in oklab, var(--primary) 60%, transparent) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--primary) 28%, transparent),
+    0 0 24px -4px color-mix(in oklab, var(--primary) 38%, transparent),
+    inset 0 0 28px -18px color-mix(in oklab, var(--primary) 70%, transparent);
+}
+
+.step-highlight .step-index {
+  color: var(--primary);
+}

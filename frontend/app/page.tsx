@@ -1,10 +1,9 @@
-"use client";
-
 import { Navbar } from "@/components/Navbar";
-import { VaultList } from "@/components/VaultList";
 import { CreateVaultModal } from "@/components/CreateVaultModal";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
-import { ShieldCheck, Coins, Gavel } from "lucide-react";
+import { RaiseCarousel } from "@/components/RaiseCarousel";
+import { fetchRaises } from "@/lib/raises";
+import { Coins, ShieldCheck, Gavel } from "lucide-react";
 
 const STEPS = [
   {
@@ -65,7 +64,9 @@ const ROADMAP = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const raises = await fetchRaises();
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -78,21 +79,19 @@ export default function HomePage() {
             <p className="eyebrow mb-4">Escrowed funding on GenLayer</p>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight mb-5">
-              Fund a team.
+              Money that only
               <br />
-              Hold it to its <span className="text-primary">condition</span>.
+              moves when the{" "}
+              <span className="text-primary">work does</span>.
             </h1>
 
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl mb-8">
-              A team opens a raise with a condition, an evidence URL, and a
-              close date. Backers deposit GEN. At the close date, AI reads the
-              evidence — if the condition is met the funds release to the team,
-              and if it isn&apos;t, every backer gets their GEN back.
+              Teams raise on proof, not promises.
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-12">
               <CreateVaultModal />
-              <WalletConnectButton />
+              <WalletConnectButton cta="Back a raise" />
             </div>
 
             {/* The contract, in four steps */}
@@ -115,51 +114,17 @@ export default function HomePage() {
         </section>
 
         {/* ── Open raises ──────────────────────────────────── */}
-        <section className="shell pb-16">
-          <div className="flex items-end justify-between gap-4 mb-6">
+        <section className="pb-16">
+          <div className="shell flex items-end justify-between gap-4 mb-6">
             <div>
               <h2 className="text-2xl font-bold mb-1">Open raises</h2>
               <p className="text-sm text-muted-foreground">
-                Each raise, with its condition, close date, and evidence link.
+                Live raises on ShipGuard, by amount committed.
               </p>
             </div>
           </div>
 
-          <VaultList />
-        </section>
-
-        {/* ── Roadmap ──────────────────────────────────────── */}
-        <section className="border-t border-border">
-          <div className="shell section">
-            <p className="eyebrow mb-3">Roadmap</p>
-            <h2 className="text-2xl md:text-3xl font-bold mb-3 max-w-2xl">
-              What ShipGuard does today, and what comes next.
-            </h2>
-            <p className="text-sm text-muted-foreground mb-10 max-w-2xl leading-relaxed">
-              Everything under &ldquo;Shipped&rdquo; is live on Studio Next. The
-              rest is planned — no dates promised until each one is built.
-            </p>
-
-            <ol className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border border border-border">
-              {ROADMAP.map((item) => (
-                <li key={item.title} className="bg-background p-6 md:p-8 flex flex-col">
-                  <span
-                    className={`eyebrow mb-4 inline-flex w-fit px-2 py-1 border ${
-                      item.status === "Shipped"
-                        ? "text-primary border-primary/40"
-                        : "text-muted-foreground border-border"
-                    }`}
-                  >
-                    {item.status}
-                  </span>
-                  <h3 className="text-base font-semibold mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {item.body}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </div>
+          <RaiseCarousel raises={raises} />
         </section>
 
         {/* ── How it works ─────────────────────────────────── */}
@@ -173,13 +138,19 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border border border-border">
               {STEPS.map((step, i) => {
                 const Icon = step.icon;
+                const highlight = i === 1;
                 return (
-                  <div key={step.label} className="bg-background p-6 md:p-8">
+                  <div
+                    key={step.label}
+                    className={`bg-background p-6 md:p-8 ${
+                      highlight ? "step-highlight" : ""
+                    }`}
+                  >
                     <div className="flex items-center gap-3 mb-4">
-                      <span className="text-primary">
+                      <span className={highlight ? "text-primary" : "text-muted-foreground"}>
                         <Icon className="w-5 h-5" />
                       </span>
-                      <span className="eyebrow">
+                      <span className={`eyebrow step-index ${highlight ? "" : "text-muted-foreground"}`}>
                         {String(i + 1).padStart(2, "0")}
                       </span>
                     </div>

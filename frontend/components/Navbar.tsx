@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { WordmarkSVG } from "./Logo";
-import { useWallet } from "@/lib/genlayer/wallet";
 import { LogOut, Menu, X, Wallet, Compass, Rocket, LayoutGrid } from "lucide-react";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useAccount, useDisconnect } from "wagmi";
 import { useRouter } from "next/navigation";
 
 interface NavItem {
@@ -13,10 +13,18 @@ interface NavItem {
   action: "connect" | "explore" | "launch" | "dashboard" | "disconnect" | null;
 }
 
+function shortAddr(addr: string | undefined) {
+  if (!addr) return "";
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+}
+
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { address, isConnected, connectWallet, disconnectWallet } = useWallet();
+  // wagmi account + disconnect (RainbowKit v2 does not export a disconnect hook),
+  // RainbowKit connect modal for the connect flow.
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
   const { openConnectModal } = useConnectModal();
   const router = useRouter();
 
@@ -37,7 +45,7 @@ export function Navbar() {
     setMenuOpen(false);
     switch (action) {
       case "connect":
-        openConnectModal ? openConnectModal() : connectWallet();
+        openConnectModal?.();
         break;
       case "explore":
         router.push("/explore");
@@ -46,7 +54,7 @@ export function Navbar() {
         router.push("/");
         break;
       case "disconnect":
-        disconnectWallet();
+        disconnect();
         break;
     }
   };
@@ -88,13 +96,32 @@ export function Navbar() {
                 <WordmarkSVG height={15} className="text-foreground" />
               </a>
 
-              {/* Right: glass-morph wallet + hamburger */}
+              {/* Right: glass-morph wallet widget + hamburger */}
               <div className="flex items-center gap-2">
                 {isConnected && address && (
-                  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:bg-white/10 transition-all duration-200">
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                      {address.slice(0, 6)}...{address.slice(-4)}
+                  <div className="hidden md:flex items-center gap-2.5 pl-2.5 pr-1 py-1.5 rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:bg-white/10 transition-all duration-200">
+                    {/* Wallet dot */}
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-40" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                     </span>
+                    <div className="flex flex-col leading-none">
+                      <span className="text-[11px] font-medium text-foreground tabular-nums">
+                        {shortAddr(address)}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground mt-0.5">
+                        Studio Next
+                      </span>
+                    </div>
+                    {/* Divider */}
+                    <span className="w-px h-6 bg-white/10" />
+                    <button
+                      onClick={() => handleNavAction("disconnect")}
+                      aria-label="Disconnect wallet"
+                      className="flex items-center justify-center w-7 h-7 rounded-full hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors duration-150"
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
 
@@ -140,15 +167,34 @@ export function Navbar() {
               overflow-hidden
             "
           >
-            {/* Section header */}
+            {/* Section header with wallet details */}
             <div className="px-5 py-4 border-b border-border/50">
               <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted-foreground">
-                {isConnected ? "Connected" : "Menu"}
+                {isConnected ? "Connected wallet" : "Menu"}
               </p>
+
+              {/* Wallet details widget — shown only when connected */}
               {isConnected && address && (
-                <p className="text-xs text-foreground mt-0.5 tabular-nums">
-                  {address.slice(0, 6)}...{address.slice(-4)}
-                </p>
+                <div className="mt-3 flex items-center gap-3 p-3 rounded-lg bg-white/[0.04] border border-white/10">
+                  {/* Avatar */}
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/15 border border-primary/25 shrink-0">
+                    <Wallet className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-50" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
+                      </span>
+                      <p className="text-sm font-semibold text-foreground tabular-nums">
+                        {shortAddr(address)}
+                      </p>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Studio Next · Chain 61997
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
 

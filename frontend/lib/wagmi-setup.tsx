@@ -10,7 +10,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConfig, http } from "wagmi";
 import { WagmiProvider } from "wagmi";
 import { getDefaultWallets, RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
-import "@rainbow-me/rainbowkit/dist/styles.css";
+import "@rainbow-me/rainbowkit/styles.css";
 import { studioDevnet } from "genlayer-js/chains";
 import { GENLAYER_CHAIN } from "@/lib/genlayer/network";
 

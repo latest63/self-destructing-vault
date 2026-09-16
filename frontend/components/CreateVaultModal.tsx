@@ -94,7 +94,7 @@ export function CreateVaultModal() {
       });
 
       success("Raise launched", {
-        description: `Fund ${id} is live. Backers can now pledge GEN to it.`,
+        description: `Raise ${id} is live. Backers can now deposit GEN into it.`,
       });
       invalidateVaultsData();
       resetForm();
@@ -206,8 +206,9 @@ export function CreateVaultModal() {
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Launch a raise</DialogTitle>
           <DialogDescription className="text-sm leading-relaxed">
-            Set the milestones, the evidence URL, and the close date. Backers
-            pledge into escrow — the AI settles it against the evidence.
+            Set the team&apos;s wallet, the roadmap, the evidence URL, and the
+            close date. Backers deposit GEN — the AI checks the evidence at the
+            close date.
           </DialogDescription>
         </DialogHeader>
 
@@ -229,7 +230,7 @@ export function CreateVaultModal() {
               <p className="eyebrow">Review</p>
               <p><span className="text-muted-foreground">Team:</span> {teamAddress}</p>
               <p><span className="text-muted-foreground">Close date:</span> {new Date(deadline).toLocaleString()}</p>
-              <p><span className="text-muted-foreground">Milestones:</span> {condition}</p>
+              <p><span className="text-muted-foreground">Roadmap:</span> {condition}</p>
               <p className="break-all"><span className="text-muted-foreground">Evidence URL:</span> {checkUrl}</p>
             </div>
 
@@ -304,7 +305,7 @@ export function CreateVaultModal() {
           <div className="space-y-2">
             <Label htmlFor="condition" className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-primary" />
-              Milestones
+              Roadmap
             </Label>
             <Input
               id="condition"

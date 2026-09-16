@@ -147,7 +147,7 @@ export function VaultList() {
   const handleActionDone = (status: TrackedStatus) => {
     if (status.successful !== false) {
       invalidateVaultsData();
-      const actionName = actionType === "deposit" ? "Pledge" : actionType === "release" ? "Release" : "Refund";
+      const actionName = actionType === "deposit" ? "Deposit" : actionType === "release" ? "Release" : "Refund";
       success(`${actionName} successful!`, {
         description: `The ${actionName.toLowerCase()} transaction has been completed.`
       });
@@ -343,7 +343,7 @@ function VaultCard({ vault, checkUrl, currentAddress, isConnected, isWalletLoadi
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
             <div className="space-y-1.5">
-              <span className="eyebrow block">Milestones</span>
+              <span className="eyebrow block">Roadmap</span>
               <p className="font-medium">{vault.condition}</p>
             </div>
             <div className="space-y-1.5">
@@ -368,7 +368,7 @@ function VaultCard({ vault, checkUrl, currentAddress, isConnected, isWalletLoadi
             <div className="mt-1 p-4 rounded-sm bg-muted/50 border border-border">
               <span className="eyebrow block mb-1.5">Verdict</span>
               <span className={`font-semibold ${vault.verdict === "success" ? "text-green-400" : "text-red-400"}`}>
-                {vault.verdict === "success" ? "Commitments Met — releases to team" : "Commitments Missed — refunds backers"}
+                {vault.verdict === "success" ? "Roadmap met — releases to team" : "Roadmap missed — refunds backers"}
               </span>
               {vault.verdict_reason && (
                 <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{vault.verdict_reason}</p>

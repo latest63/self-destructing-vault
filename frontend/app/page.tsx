@@ -9,26 +9,26 @@ import { ShieldCheck, Coins, Gavel } from "lucide-react";
 const STEPS = [
   {
     icon: Coins,
-    label: "Back a project",
-    body: "Pledge GEN to a team raising for their next release. Your funds sit in escrow until the terms are settled.",
+    label: "Open a raise",
+    body: "Set the team's wallet, the roadmap, the evidence URL, and the close date. Those four things are the whole contract.",
   },
   {
     icon: ShieldCheck,
-    label: "Milestones hold the funds",
-    body: "The team commits to public, verifiable milestones up front. Those commitments are the release condition — not a promise.",
+    label: "Backers deposit",
+    body: "Anyone can deposit GEN into the raise. It sits in the contract — the team cannot touch it until the roadmap is verified.",
   },
   {
     icon: Gavel,
-    label: "AI settles it",
-    body: "At the close date, GenLayer's validators check the evidence. Delivered — the team is paid. Missed — every backer is refunded.",
+    label: "Verify and settle",
+    body: "At the close date, GenLayer's AI reads the evidence URL. Roadmap met — funds release to the team. Missed — every backer refunds.",
   },
 ];
 
 const TIMELINE = [
-  { label: "Raise opens", detail: "Backers pledge" },
-  { label: "Milestones due", detail: "Team ships" },
-  { label: "AI verifies", detail: "Evidence checked" },
-  { label: "Funds move", detail: "Paid or refunded" },
+  { label: "Open the raise", detail: "Roadmap + date" },
+  { label: "Backers deposit", detail: "GEN into the raise" },
+  { label: "AI reads evidence", detail: "Checks the URL" },
+  { label: "Release or refund", detail: "One of two exits" },
 ];
 
 export default function HomePage() {
@@ -41,20 +41,19 @@ export default function HomePage() {
         {/* ── Hero ─────────────────────────────────────────── */}
         <section className="shell pt-16 pb-12 md:pt-24 md:pb-16">
           <div className="max-w-3xl">
-            <p className="eyebrow mb-4">Launchpad · Escrowed raises</p>
+            <p className="eyebrow mb-4">Escrowed funding on GenLayer</p>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight mb-5">
-              Back the teams
+              Fund a team.
               <br />
-              that <span className="text-primary">ship</span>.
+              Hold it to its <span className="text-primary">roadmap</span>.
             </h1>
 
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl mb-8">
-              A launchpad where builders raise from their community, and backers
-              stay protected. Pledges are held in escrow — released when the
-              team delivers its milestones, returned to you when they don&apos;t.
-              No committee decides. AI settles it against the team&apos;s public
-              evidence.
+              A team opens a raise with a roadmap, an evidence URL, and a close
+              date. Backers deposit GEN. At the close date, AI reads the
+              evidence — if the roadmap is met the funds release to the team,
+              and if it isn&apos;t, every backer gets their GEN back.
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-12">
@@ -62,7 +61,7 @@ export default function HomePage() {
               <WalletConnectButton />
             </div>
 
-            {/* Settlement timeline — explains the product in one glance */}
+            {/* The contract, in four steps */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border border border-border">
               {TIMELINE.map((step, i) => (
                 <div key={step.label} className="bg-background p-4">
@@ -81,13 +80,13 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ── Live raises ──────────────────────────────────── */}
+        {/* ── Open raises ──────────────────────────────────── */}
         <section className="shell pb-16">
           <div className="flex items-end justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-2xl font-bold mb-1">Live raises</h2>
+              <h2 className="text-2xl font-bold mb-1">Open raises</h2>
               <p className="text-sm text-muted-foreground">
-                Every open raise, with its milestones and settlement date.
+                Each raise, with its roadmap, close date, and evidence link.
               </p>
             </div>
           </div>
@@ -100,7 +99,7 @@ export default function HomePage() {
           <div className="shell section">
             <p className="eyebrow mb-3">How it works</p>
             <h2 className="text-2xl md:text-3xl font-bold mb-10 max-w-2xl">
-              Escrowed funding, settled by evidence instead of trust.
+              Three steps, one escrow, two possible endings.
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border border border-border">
@@ -128,9 +127,9 @@ export default function HomePage() {
             </div>
 
             <p className="text-xs text-muted-foreground mt-6 max-w-2xl leading-relaxed">
-              The milestone check is a gate, not a trigger — settlement runs when
-              someone submits it, and the deadline guarantees backers can always
-              reclaim if the team goes quiet.
+              Nothing settles on its own — someone submits the check, and the
+              close date guarantees backers can always refund if the team goes
+              quiet.
             </p>
           </div>
         </section>

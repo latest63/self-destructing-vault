@@ -85,3 +85,101 @@ The contracts correctly implement the "contracts that govern contracts" pattern:
 ### Conclusion
 
 The contracts are syntactically correct, follow GenLayer SDK patterns, and implement the required architecture. The main verification blocker is disk space for running tests, but all static analysis passes successfully.
+
+---
+
+## CRITICAL: Message Fees for Outgoing Transfers (Studio Next / GenVM v0.3.0)
+
+**Any contract method that emits a transfer requires a message fee allocation
+declared at transaction submission.** This is the single most costly bug to
+diagnose in this project — it presents as a generic
+`FINISHED_WITH_ERROR` with no traceback, and it silently breaks
+`release()` and `refund()` in the UI.
+
+### The failure
+
+Methods that call `gl.chain.Account(addr).emit_transfer(value)` — specifically
+`release()` and `refund()` — emit an **internal message**. The network demands
+that message's budget be reserved up front. Without it the tx dies during fee
+allocation with:
+
+```
+fee no_matching_allocation # 0x01 Mode1MessageFeesRequireGenVMPerEmissionSupport
+```
+
+### The rule
+
+| Call site | Correct estimator |
+|---|---|
+| Any method with **no** outgoing transfer (`create_vault`, `deposit`, `register_condition`, `evaluate`) | `estimateTransactionFees({})` |
+| Any method that **emits a transfer** (`release`, `refund`) | `estimateTransactionFeesForWrite({ address, functionName, args, account })` |
+
+`estimateTransactionFeesForWrite` calls the Studio-only
+`sim_estimateTransactionFees` RPC, which returns an authoritative
+`recommendedPreset` containing the required `fees.messageAllocations` list and
+the matching `feeValue`.
+
+### Correct usage
+
+```js
+const fees = await client.estimateTransactionFeesForWrite({
+  address: VAULT, functionName: "release", args: [vaultId], account: client.account,
+});
+await client.writeContract({ address: VAULT, functionName: "release", args: [vaultId], fees });
+```
+
+### Wrong usages that look plausible but always fail
+
+```js
+// (a) No fees at all -> FeeValueMustBeNonZero
+await client.writeContract({ address, functionName: "release", args: [id] });
+
+// (b) Empty estimate -> messageAllocations: [] -> no_matching_allocation
+const fees = await client.estimateTransactionFees({});
+await client.writeContract({ address, functionName: "release", args: [id], fees });
+
+// (c) Patching the distribution -> those fields DO NOT EXIST
+//     (there is no maxMessagesPerTx; totalMessageFees alone is not enough,
+//      the allocation array is what the network matches against)
+fees.distribution.maxMessagesPerTx = 4;      // ignored
+fees.distribution.totalMessageFees = 2e15;   // insufficient
+```
+
+### Why the Transaction Kit panel cannot be used for release/refund
+
+`SubmitInput` (the kit's tx descriptor) has **no `fees` field**, and
+`PolicyInput.overrides` is a `Partial<FeesDistributionInput>` — which does not
+include `messageAllocations`. The kit therefore cannot express the allocation,
+so `release`/`refund` are submitted directly through the contract client.
+`deposit` still uses the kit panel because it stays within one contract and
+emits no message.
+
+### Verified on Studio Next (chainId 61997)
+
+Both exits, with the fix applied:
+
+| Path | Result |
+|---|---|
+| condition met → `release` | `FINISHED_WITH_RETURN`, status `active` → `released`, `total_deposited` → 0, transferred to team |
+| condition not met → `refund` | `FINISHED_WITH_RETURN`, status `active` → `refunded`, `total_deposited` → 0, transferred to depositor |
+
+Contracts: ConditionGovernor `0xd56D815662C9E0008835E79a66A1CFAFdcF1256E`,
+Vault `0xaDce66075e9D1C6e43aF13EFE88AfC0265A79d33`.
+
+### Contract call signatures (frontend must match exactly)
+
+```python
+create_vault(vault_id, team_address, deadline, condition, condition_contract)
+deposit(vault_id)
+release(vault_id)
+refund(vault_id)
+register_condition(vault_id, check_url, success_condition, team_address)  # on the governor
+evaluate(vault_id)                                                        # on the governor
+get_verdict(vault_id)   -> { decision: "success"|"failure", reason }       # on the governor
+```
+
+Note the contracts return **dicts**, not primitives: `get_verdict` yields
+`{"decision": ..., "reason": ...}` and `get_condition` yields a dict containing
+`check_url`. The vault does not store `check_url` itself — read it from the
+governor.
+

@@ -1,7 +1,9 @@
-# { "Depends": "py-genlayer:9b8kjyda2ycxyq4ea6g4yfpnydxhd52gqba5rb8dw7krkh5mn9p0" }
+# v0.3.0
+# { "Depends": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" }
 
 from dataclasses import dataclass
 import genlayer as gl
+from genlayer.types import *
 from genlayer.storage import allow as allow_storage
 
 
@@ -48,21 +50,30 @@ class SelfDestructingVault(gl.contract.Contract):
     ) -> str:
         if vault_id in self.vaults:
             raise gl.vm.UserError("Vault already exists")
-        
+
+        # Callers (frontend / SDK) pass hex strings; the storage slot is an
+        # Address, so coerce explicitly — a bare str raises AttributeError
+        # ('str' object has no attribute 'as_bytes') inside the VM.
+        team_addr = gl.Address(team_address)
+        condition_addr = gl.Address(condition_contract)
+
         self.vaults[vault_id] = Vault(
             id=vault_id,
             creator=gl.message.sender_address,
-            team_address=team_address,
+            team_address=team_addr,
             deadline=deadline,
             condition=condition,
             status="active",
             total_deposited=gl.u256(0),
-            condition_contract=condition_contract,
+            condition_contract=condition_addr,
             verdict="",
             verdict_reason="",
             evaluated_at="",
         )
-        self.depositor_list[vault_id] = gl.storage.DynArray[gl.Address]()
+        # Create the depositor list lazily; nested storage containers cannot
+        # be constructed with DynArray()/TreeMap() (that raises TypeError in
+        # v0.3.0). get_or_insert_default allocates the slot in-place instead.
+        self.depositor_list.get_or_insert_default(vault_id)
         return "Vault created: " + vault_id
 
     @gl.public.write.payable
@@ -78,26 +89,27 @@ class SelfDestructingVault(gl.contract.Contract):
             raise gl.vm.UserError("Must send value")
         
         depositor = gl.message.sender_address
-        
-        # Initialize deposit map if needed
-        if vault_id not in self.deposits:
-            self.deposits[vault_id] = gl.storage.TreeMap[gl.Address, VaultDeposit]()
-        
-        existing = self.deposits[vault_id].get(depositor)
+
+        # Nested containers can't be constructed directly in v0.3.0 —
+        # get_or_insert_default allocates them in storage instead.
+        deposits_for_vault = self.deposits.get_or_insert_default(vault_id)
+        depositor_list = self.depositor_list.get_or_insert_default(vault_id)
+
+        existing = deposits_for_vault.get(depositor)
         if existing:
             # Add to existing deposit
-            self.deposits[vault_id][depositor] = VaultDeposit(
+            deposits_for_vault[depositor] = VaultDeposit(
                 depositor=depositor,
                 amount=existing.amount + amount,
-                deposited_at=str(gl.message_raw["datetime"]),
+                deposited_at=str(gl.message.raw["datetime"]),
             )
         else:
-            self.deposits[vault_id][depositor] = VaultDeposit(
+            deposits_for_vault[depositor] = VaultDeposit(
                 depositor=depositor,
                 amount=amount,
-                deposited_at=str(gl.message_raw["datetime"]),
+                deposited_at=str(gl.message.raw["datetime"]),
             )
-            self.depositor_list[vault_id].append(depositor)
+            depositor_list.append(depositor)
         
         vault.total_deposited = vault.total_deposited + amount
         return "Deposited " + str(amount) + " to vault " + vault_id
@@ -112,7 +124,7 @@ class SelfDestructingVault(gl.contract.Contract):
             raise gl.vm.UserError("Vault is not active")
         
         # READ the condition contract verdict — this is the governance gate
-        condition = gl.get_contract_at(vault.condition_contract)
+        condition = gl.contract.get_at(vault.condition_contract)
         verdict = condition.view().get_verdict(vault_id)
         
         if not verdict or verdict.get("decision") != "success":
@@ -121,12 +133,12 @@ class SelfDestructingVault(gl.contract.Contract):
         # Record verdict
         vault.verdict = "success"
         vault.verdict_reason = verdict.get("reason", "")
-        vault.evaluated_at = str(gl.message_raw["datetime"])
+        vault.evaluated_at = str(gl.message.raw["datetime"])
         vault.status = "released"
         
         # Transfer to team
         total = vault.total_deposited
-        gl.vm.transfer(vault.team_address, total)
+        gl.chain.Account(vault.team_address).emit_transfer(total)
         vault.total_deposited = gl.u256(0)
         
         return "Released " + str(total) + " to " + str(vault.team_address)
@@ -141,11 +153,20 @@ class SelfDestructingVault(gl.contract.Contract):
             raise gl.vm.UserError("Vault is not active")
         
         # Check condition contract verdict
-        condition = gl.get_contract_at(vault.condition_contract)
+        condition = gl.contract.get_at(vault.condition_contract)
         verdict = condition.view().get_verdict(vault_id)
         
-        # Allow refund if condition failed OR deadline passed
-        current_time = str(gl.message_raw["datetime"])
+        # Allow refund if condition failed OR deadline passed.
+        #
+        # The governor returns one of three decisions:
+        #   "success"      -> release only (blocked here)
+        #   "failure"      -> a CONFIDENT read said the condition is false -> refund OK
+        #   "inconclusive" -> the page could not be read/judged -> NOT a failure.
+        #                     Before the deadline this blocks the refund so that
+        #                     evaluate() can be retried; after the deadline it
+        #                     falls through and depositors are refunded, so funds
+        #                     are never permanently trapped by a site outage.
+        current_time = str(gl.message.raw["datetime"])
         deadline_passed = current_time > vault.deadline
         
         if verdict and verdict.get("decision") == "success":
@@ -160,13 +181,15 @@ class SelfDestructingVault(gl.contract.Contract):
         vault.status = "refunded"
         
         # Refund all depositors proportionally
-        depositors = self.depositor_list.get(vault_id, gl.storage.DynArray[gl.Address]())
+        depositors = self.depositor_list.get(vault_id)
+        deposits_for_vault = self.deposits.get(vault_id)
         total = vault.total_deposited
-        
-        for dep in depositors:
-            d = self.deposits[vault_id].get(dep)
-            if d and d.amount > gl.u256(0):
-                gl.vm.transfer(dep, d.amount)
+
+        if depositors and deposits_for_vault:
+            for dep in depositors:
+                d = deposits_for_vault.get(dep)
+                if d and d.amount > gl.u256(0):
+                    gl.chain.Account(dep).emit_transfer(d.amount)
         
         vault.total_deposited = gl.u256(0)
         return "Refunded all depositors for vault " + vault_id
@@ -210,10 +233,16 @@ class SelfDestructingVault(gl.contract.Contract):
 
     @gl.public.view
     def get_vault_depositors(self, vault_id: str) -> list:
-        depositors = self.depositor_list.get(vault_id, gl.storage.DynArray[gl.Address]())
+        # Read-only: must NOT use get_or_insert_default (that writes storage).
+        depositors = self.depositor_list.get(vault_id)
+        if not depositors:
+            return []
+        deposits_for_vault = self.deposits.get(vault_id)
+        if not deposits_for_vault:
+            return []
         results = []
         for dep in depositors:
-            d = self.deposits[vault_id].get(dep)
+            d = deposits_for_vault.get(dep)
             if d:
                 results.append({
                     "depositor": str(d.depositor),
@@ -227,7 +256,8 @@ class SelfDestructingVault(gl.contract.Contract):
         deposits_for_vault = self.deposits.get(vault_id)
         if not deposits_for_vault:
             return {}
-        d = deposits_for_vault.get(depositor)
+        # Callers pass hex strings; coerce since the map is keyed by Address.
+        d = deposits_for_vault.get(gl.Address(depositor))
         if not d:
             return {}
         return {

@@ -1,10 +1,15 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Calendar, Users, ArrowLeft, Link } from "lucide-react";
-import { GenLayerTransactionPanel, type SubmitInput, type TrackedStatus } from "@genlayer/transaction-kit-react";
+import { Plus, Calendar, Users, ArrowLeft, Link, Loader2 } from "lucide-react";
+import { createClient } from "genlayer-js";
 import { useInvalidateVaultsData } from "@/lib/hooks/useVault";
-import { GENLAYER_NETWORK, getVaultContractAddress } from "@/lib/genlayer/client";
+import {
+  GENLAYER_CHAIN,
+  GENLAYER_NETWORK,
+  getVaultContractAddress,
+  getConditionContractAddress,
+} from "@/lib/genlayer/client";
 import { useTransactionKit } from "@/lib/genlayer/kit";
 import { useWallet } from "@/lib/genlayer/wallet";
 import { error, success } from "@/lib/utils/toast";
@@ -18,6 +23,7 @@ export function CreateVaultModal() {
   const kit = useTransactionKit(address);
   const invalidateVaultsData = useInvalidateVaultsData();
   const vaultAddress = getVaultContractAddress();
+  const conditionAddress = getConditionContractAddress();
 
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<"form" | "review">("form");
@@ -39,18 +45,68 @@ export function CreateVaultModal() {
     return Math.floor(new Date(deadline).getTime() / 1000).toString();
   }, [deadline]);
 
-  // Stable tx identity: useTransactionFlow re-estimates (and resets the flow)
-  // whenever the tx object reference changes, so it must not be re-created on
-  // unrelated re-renders while the panel is mounted.
-  const createVaultTx = useMemo<SubmitInput>(
-    () => ({
-      kind: "write",
-      address: vaultAddress as `0x${string}`,
-      method: "create_vault",
-      args: [teamAddress, deadlineTimestamp, condition, checkUrl],
-    }),
-    [vaultAddress, teamAddress, deadlineTimestamp, condition, checkUrl]
-  );
+  // The contract keys the vault and its condition by a caller-supplied vault_id,
+  // so one id is minted per form submission and reused by both transactions:
+  //   1. register_condition(vault_id, check_url, success_condition, team_address)
+  //   2. create_vault(vault_id, team_address, deadline, condition, condition_contract)
+  const [vaultId, setVaultId] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const createAndRegister = async () => {
+    if (!address) {
+      error("Please connect your wallet first");
+      return;
+    }
+    if (!vaultAddress || !conditionAddress) {
+      error("Contract address not configured", {
+        description:
+          "Set NEXT_PUBLIC_VAULT_CONTRACT and NEXT_PUBLIC_CONDITION_CONTRACT in your .env file.",
+      });
+      return;
+    }
+
+    const id = vaultId || `vault-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setVaultId(id);
+    setSubmitting(true);
+
+    try {
+      const client = createClient({
+        chain: GENLAYER_CHAIN,
+        account: address as `0x${string}`,
+      });
+
+      // 1. Register the condition with the governor.
+      const regFees = await client.estimateTransactionFees({});
+      await client.writeContract({
+        address: conditionAddress as `0x${string}`,
+        functionName: "register_condition",
+        args: [id, checkUrl, condition, teamAddress],
+        fees: regFees,
+      });
+
+      // 2. Create the vault, reusing the same id.
+      const cvFees = await client.estimateTransactionFees({});
+      await client.writeContract({
+        address: vaultAddress as `0x${string}`,
+        functionName: "create_vault",
+        args: [id, teamAddress, deadlineTimestamp, condition, conditionAddress],
+        fees: cvFees,
+      });
+
+      success("Fund opened successfully!", {
+        description: `Fund ${id} is live. Backers can now pledge GEN to it.`,
+      });
+      invalidateVaultsData();
+      resetForm();
+      setIsOpen(false);
+    } catch (e: any) {
+      error("Failed to open fund", {
+        description: e?.message || "The transaction could not be submitted.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // Auto-close modal when wallet disconnects
   useEffect(() => {
@@ -138,39 +194,23 @@ export function CreateVaultModal() {
     setIsOpen(open);
   };
 
-  const handleDone = (status: TrackedStatus) => {
-    if (status.successful !== false) {
-      invalidateVaultsData();
-      success("Vault created successfully!", {
-        description: "Your vault has been created on the blockchain."
-      });
-      resetForm();
-      setIsOpen(false);
-      return;
-    }
-
-    error("Failed to create vault", {
-      description: "The transaction completed without a successful outcome."
-    });
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="gradient" disabled={!isConnected || !address || isLoading}>
           <Plus className="w-4 h-4 mr-2" />
-          Create Vault
+          Open Fund
         </Button>
       </DialogTrigger>
       <DialogContent className="brand-card border-2 sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Create Self-Destructing Vault</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Open an Ecosystem Fund</DialogTitle>
           <DialogDescription>
-            Create a vault that releases funds based on conditions
+            Define the team's commitments, the check URL, and the deadline. Backers pledge; the AI settles it.
           </DialogDescription>
         </DialogHeader>
 
-        {step === "review" && kit && vaultAddress ? (
+        {step === "review" ? (
           <div className="mt-4 space-y-4">
             <Button
               type="button"
@@ -178,18 +218,41 @@ export function CreateVaultModal() {
               size="sm"
               onClick={() => setStep("form")}
               className="gap-2"
+              disabled={submitting}
             >
               <ArrowLeft className="h-4 w-4" />
               Back
             </Button>
-            <GenLayerTransactionPanel
-              kit={kit}
-              tx={createVaultTx}
-              network={GENLAYER_NETWORK.chainName}
-              theme="dark"
-              trackUntil="decided"
-              onDone={handleDone}
-            />
+
+            <div className="space-y-2 rounded-lg bg-muted/50 p-4 text-sm">
+              <p className="font-semibold">Review</p>
+              <p><span className="text-muted-foreground">Team:</span> {teamAddress}</p>
+              <p><span className="text-muted-foreground">Deadline:</span> {new Date(deadline).toLocaleString()}</p>
+              <p><span className="text-muted-foreground">Commitments:</span> {condition}</p>
+              <p className="break-all"><span className="text-muted-foreground">Verification URL:</span> {checkUrl}</p>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              This submits two transactions: first the commitments are registered with the
+              guardian, then the fund is opened. Both share one fund id.
+            </p>
+
+            <Button
+              type="button"
+              variant="gradient"
+              className="w-full"
+              onClick={createAndRegister}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Opening fund…
+                </>
+              ) : (
+                "Confirm & Open Fund"
+              )}
+            </Button>
           </div>
         ) : (
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
@@ -240,12 +303,12 @@ export function CreateVaultModal() {
           <div className="space-y-2">
             <Label htmlFor="condition" className="flex items-center gap-2">
               <Link className="w-4 h-4 !text-white" />
-              Condition
+              Commitments
             </Label>
             <Input
               id="condition"
               type="text"
-              placeholder="e.g., Team wins the championship"
+              placeholder="e.g., The project ships v1 and publishes a public changelog"
               value={condition}
               onChange={(e) => {
                 setCondition(e.target.value);
@@ -262,12 +325,12 @@ export function CreateVaultModal() {
           <div className="space-y-2">
             <Label htmlFor="checkUrl" className="flex items-center gap-2">
               <Link className="w-4 h-4 !text-white" />
-              Check URL
+              Verification URL
             </Label>
             <Input
               id="checkUrl"
               type="url"
-              placeholder="https://example.com/verify"
+              placeholder="https://github.com/org/project"
               value={checkUrl}
               onChange={(e) => {
                 setCheckUrl(e.target.value);

@@ -8,110 +8,76 @@ import {
 } from "genlayer-js/types";
 import { localnet } from "genlayer-js/chains";
 
-export const isSuccessfulDeploymentReceipt = (receipt: {
-  status?: number | string;
-  statusName?: string;
-}): boolean => {
-  const numericStatus = Number(receipt.status);
-  return (
-    numericStatus === 5 ||
-    numericStatus === 7 ||
-    receipt.statusName === "ACCEPTED" ||
-    receipt.statusName === "FINALIZED"
-  );
+// Generous explicit fee: covers consensus timeunits + execution + rotations.
+// Network rejected the SDK default (0.025 GEN) with InsufficientFees.
+const GENEROUS_FEES = {
+  distribution: {
+    leaderTimeunitsAllocation: "100",
+    validatorTimeunitsAllocation: "200",
+    appealRounds: "0",
+    executionBudgetPerRound: "25000000000000000",
+    executionConsumed: "0",
+    totalMessageFees: "0",
+    rotations: ["3"],
+    maxPriceGenPerTimeUnit: "2",
+    storageFeeMaxGasPrice: "300000000",
+    receiptFeeMaxGasPrice: "300000000",
+  },
+  feeValue: "1000000000000000000", // 1 GEN
 };
 
+async function deployOne(
+  client: GenLayerClient<any>,
+  file: string,
+  label: string,
+): Promise<string | undefined> {
+  const code = new Uint8Array(readFileSync(path.resolve(process.cwd(), file)));
+  console.log(`Deploying ${label}...`);
+
+  const tx = await client.deployContract({
+    code,
+    args: [],
+    fees: GENEROUS_FEES,
+  } as any);
+  console.log(`  tx: ${tx}`);
+
+  const receipt = await client.waitForTransactionReceipt({
+    hash: tx as TransactionHash,
+    waitUntil: "decided",
+    retries: 200,
+  });
+
+  console.log(
+    `  status=${receipt.status} result=${(receipt as any).result} exec=${(receipt as any).txExecutionResultName}`,
+  );
+
+  const addr =
+    (client.chain as GenLayerChain).id === localnet.id
+      ? receipt.data?.contract_address
+      : ((receipt.txDataDecoded as DecodedDeployData)?.contractAddress ??
+        receipt.data?.contract_address);
+
+  return addr as string | undefined;
+}
+
 export default async function main(client: GenLayerClient<any>) {
-  // Step 1: Deploy Condition Governor
-  const conditionPath = path.resolve(process.cwd(), "contracts/condition.py");
-  console.log("Deploying Condition Governor...");
+  await client.initializeConsensusSmartContract();
 
-  try {
-    const conditionCode = new Uint8Array(readFileSync(conditionPath));
-    await client.initializeConsensusSmartContract();
+  const conditionAddress = await deployOne(
+    client,
+    "contracts/condition.py",
+    "Condition Governor",
+  );
+  console.log(`Condition Governor: ${conditionAddress}`);
 
-    const conditionTx = await client.deployContract({
-      code: conditionCode,
-      args: [],
-    });
+  const vaultAddress = await deployOne(
+    client,
+    "contracts/vault.py",
+    "Self-Destructing Vault",
+  );
+  console.log(`Vault: ${vaultAddress}`);
 
-    console.log(`Condition tx hash: ${conditionTx}`);
-
-    const conditionReceipt = await client.waitForTransactionReceipt({
-      hash: conditionTx as TransactionHash,
-      waitUntil: "decided",
-      retries: 200,
-    });
-
-    console.log(`Condition receipt:`, JSON.stringify(conditionReceipt, null, 2));
-
-    if (!isSuccessfulDeploymentReceipt(conditionReceipt)) {
-      throw new Error(`Condition deployment failed. Receipt: ${JSON.stringify(conditionReceipt)}`);
-    }
-
-    // Try multiple ways to get the contract address
-    const conditionAddress =
-      (client.chain as GenLayerChain).id === localnet.id
-        ? conditionReceipt.data?.contract_address
-        : (conditionReceipt.txDataDecoded as DecodedDeployData)?.contractAddress
-          ?? conditionReceipt.data?.contract_address
-          ?? conditionReceipt.contract_address;
-
-    if (!conditionAddress) {
-      console.log("Receipt keys:", Object.keys(conditionReceipt));
-      console.log("Receipt.data:", conditionReceipt.data);
-      console.log("Receipt.txDataDecoded:", conditionReceipt.txDataDecoded);
-      throw new Error("Condition deployment receipt did not contain a contract address");
-    }
-
-    console.log(`✅ Condition Governor deployed at: ${conditionAddress}`);
-
-    // Step 2: Deploy Vault
-    const vaultPath = path.resolve(process.cwd(), "contracts/vault.py");
-    console.log("Deploying Self-Destructing Vault...");
-
-    const vaultCode = new Uint8Array(readFileSync(vaultPath));
-
-    const vaultTx = await client.deployContract({
-      code: vaultCode,
-      args: [],
-    });
-
-    console.log(`Vault tx hash: ${vaultTx}`);
-
-    const vaultReceipt = await client.waitForTransactionReceipt({
-      hash: vaultTx as TransactionHash,
-      waitUntil: "decided",
-      retries: 200,
-    });
-
-    console.log(`Vault receipt:`, JSON.stringify(vaultReceipt, null, 2));
-
-    if (!isSuccessfulDeploymentReceipt(vaultReceipt)) {
-      throw new Error(`Vault deployment failed. Receipt: ${JSON.stringify(vaultReceipt)}`);
-    }
-
-    const vaultAddress =
-      (client.chain as GenLayerChain).id === localnet.id
-        ? vaultReceipt.data?.contract_address
-        : (vaultReceipt.txDataDecoded as DecodedDeployData)?.contractAddress
-          ?? vaultReceipt.data?.contract_address
-          ?? vaultReceipt.contract_address;
-
-    if (!vaultAddress) {
-      throw new Error("Vault deployment receipt did not contain a contract address");
-    }
-
-    console.log(`✅ Self-Destructing Vault deployed at: ${vaultAddress}`);
-
-    console.log("\n=== DEPLOYMENT COMPLETE ===");
-    console.log(`Condition Governor: ${conditionAddress}`);
-    console.log(`Vault: ${vaultAddress}`);
-    console.log(`\nUpdate frontend/.env with:`);
-    console.log(`NEXT_PUBLIC_VAULT_CONTRACT_ADDRESS=${vaultAddress}`);
-    console.log(`NEXT_PUBLIC_CONDITION_CONTRACT_ADDRESS=${conditionAddress}`);
-
-  } catch (error) {
-    throw new Error(`Error during deployment: ${error}`);
-  }
+  console.log("\n=== DEPLOYMENT COMPLETE ===");
+  console.log(`NEXT_PUBLIC_CONDITION_CONTRACT=${conditionAddress}`);
+  console.log(`NEXT_PUBLIC_VAULT_CONTRACT=${vaultAddress}`);
 }

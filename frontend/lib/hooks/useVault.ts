@@ -87,8 +87,13 @@ export function useVault(id: string) {
 }
 
 /**
- * Hook to create a new vault
- * Returns a mutation function that creates a vault and invalidates the vaults query
+ * Hook to create a new vault.
+ *
+ * The contract keys the vault (and its registered condition) by a caller-supplied
+ * vault_id, so this hook mints one, registers the condition with the governor,
+ * then creates the vault. All three steps must share the same id.
+ *
+ * Returns { vaultId, txHashes } so the UI can link to the new vault.
  */
 export function useCreateVault() {
   const contract = useVaultContract();
@@ -99,7 +104,21 @@ export function useCreateVault() {
       if (!contract) {
         throw new Error("Contract not available");
       }
-      return contract.createVault(params);
+
+      const vaultId = contract.generateVaultId();
+
+      // 1. Register the condition — create_vault does NOT do this for us.
+      const conditionHash = await contract.registerCondition(
+        vaultId,
+        params.check_url,
+        params.condition,
+        params.team_address
+      );
+
+      // 2. Create the vault, reusing the same id.
+      const vaultHash = await contract.createVault(params, vaultId);
+
+      return { vaultId, txHashes: { conditionHash, vaultHash } };
     },
     onSuccess: () => {
       invalidateVaultsData();
@@ -168,6 +187,82 @@ export function useRefund() {
       invalidateVaultsData();
     },
   });
+}
+
+/**
+ * Hook to ask the ConditionGovernor to evaluate a vault's condition.
+ * Runs the AI + live web fetch and stores the verdict on-chain.
+ */
+export function useEvaluateCondition() {
+  const contract = useVaultContract();
+  const invalidateVaultsData = useInvalidateVaultsData();
+
+  return useMutation({
+    mutationFn: async (vaultId: string) => {
+      if (!contract) {
+        throw new Error("Contract not available");
+      }
+      return contract.evaluateCondition(vaultId);
+    },
+    onSuccess: () => {
+      invalidateVaultsData();
+    },
+  });
+}
+
+/**
+ * Decide which exit a vault is eligible for, mirroring the contract's own rules.
+ *
+ *   condition met        -> release (funds to team)
+ *   condition not met    -> refund  (funds back to depositors)
+ *   deadline passed      -> refund is permitted regardless of verdict
+ */
+export function getVaultExit(vault: Vault): {
+  canRelease: boolean;
+  canRefund: boolean;
+  label: string;
+  hint: string;
+} {
+  const isActive = vault.status === "active";
+  const verdict = (vault.verdict || "").toLowerCase();
+  const deadlinePassed =
+    !!vault.deadline && Date.now() / 1000 > Number(vault.deadline);
+
+  const canRelease = isActive && verdict === "success";
+  const canRefund =
+    isActive && (verdict === "failure" || (deadlinePassed && verdict !== "success"));
+
+  let label = "Awaiting evaluation";
+  let hint = "This condition has not been evaluated yet.";
+
+  if (verdict === "success") {
+    label = "Release to team";
+    hint = "Condition met — funds go to the team.";
+  } else if (verdict === "failure") {
+    label = "Refund depositors";
+    hint = "Condition not met — funds return to depositors.";
+  } else if (deadlinePassed) {
+    label = "Refund depositors";
+    hint = "Deadline passed without the condition being met — funds return to depositors.";
+  }
+
+  return { canRelease, canRefund, label, hint };
+}
+
+/**
+ * Whether an evaluation was inconclusive (page unreadable/unjudgeable).
+ *
+ * The governor only stores a verdict when a read was confident, so an
+ * inconclusive run leaves the vault with no verdict at all. Callers should
+ * offer to re-run evaluate() rather than assuming the condition failed.
+ */
+export function isInconclusive(vault: Vault): boolean {
+  return (
+    vault.status === "active" &&
+    (vault.verdict || "") === "" &&
+    !!vault.deadline &&
+    Date.now() / 1000 <= Number(vault.deadline)
+  );
 }
 
 /**

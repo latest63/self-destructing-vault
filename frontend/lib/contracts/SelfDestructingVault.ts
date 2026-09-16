@@ -4,6 +4,15 @@ import type { Vault, CreateVaultParams, DepositParams } from "./types";
 
 /**
  * SelfDestructingVault contract class for interacting with the GenLayer Vault contract
+ *
+ * IMPORTANT — GenLayer message fees (v0.3.0 / Studio Next):
+ * Any contract method that emits an outgoing transfer (`release`, `refund`) MUST be
+ * priced with `estimateTransactionFeesForWrite`, NOT `estimateTransactionFees`.
+ * `emit_transfer` produces an internal message, and the network requires that
+ * message's budget to be declared in `fees.messageAllocations` at submission time.
+ * Estimating with `estimateTransactionFees({})` returns an empty allocation list and
+ * the transaction dies with `no_matching_allocation`
+ * (Mode1MessageFeesRequireGenVMPerEmissionSupport) before the transfer runs.
  */
 class SelfDestructingVault {
   private vaultAddress: `0x${string}`;
@@ -37,19 +46,78 @@ class SelfDestructingVault {
   }
 
   /**
-   * Create a new vault
+   * Mint a unique vault id. The contract keys both the vault and its registered
+   * condition by this id, so it must be generated once and reused for
+   * registerCondition -> createVault -> deposit.
    */
-  async createVault(params: CreateVaultParams): Promise<string> {
+  generateVaultId(): string {
+    return `vault-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  /**
+   * Register the condition with the ConditionGovernor contract.
+   * Must be called before createVault; createVault does not register it.
+   */
+  async registerCondition(
+    vaultId: string,
+    checkUrl: string,
+    successCondition: string,
+    teamAddress: string
+  ): Promise<string> {
     try {
+      const fees = await this.client.estimateTransactionFees({});
+      const result = await this.client.writeContract({
+        address: this.conditionAddress,
+        functionName: "register_condition",
+        args: [vaultId, checkUrl, successCondition, teamAddress],
+        fees,
+      });
+      return result.hash;
+    } catch (error) {
+      console.error("Error registering condition:", error);
+      throw new Error("Failed to register condition");
+    }
+  }
+
+  /**
+   * Ask the ConditionGovernor to evaluate the condition (AI + web fetch).
+   */
+  async evaluateCondition(vaultId: string): Promise<string> {
+    try {
+      const fees = await this.client.estimateTransactionFees({});
+      const result = await this.client.writeContract({
+        address: this.conditionAddress,
+        functionName: "evaluate",
+        args: [vaultId],
+        fees,
+      });
+      return result.hash;
+    } catch (error) {
+      console.error("Error evaluating condition:", error);
+      throw new Error("Failed to evaluate condition");
+    }
+  }
+
+  /**
+   * Create a new vault.
+   *
+   * Contract signature:
+   *   create_vault(vault_id, team_address, deadline, condition, condition_contract) -> str
+   */
+  async createVault(params: CreateVaultParams, vaultId: string): Promise<string> {
+    try {
+      const fees = await this.client.estimateTransactionFees({});
       const result = await this.client.writeContract({
         address: this.vaultAddress,
         functionName: "create_vault",
         args: [
+          vaultId,
           params.team_address,
           params.deadline,
           params.condition,
-          params.check_url,
+          this.conditionAddress,
         ],
+        fees,
       });
       return result.hash;
     } catch (error) {
@@ -63,11 +131,13 @@ class SelfDestructingVault {
    */
   async deposit(params: DepositParams): Promise<string> {
     try {
+      const fees = await this.client.estimateTransactionFees({});
       const result = await this.client.writeContract({
         address: this.vaultAddress,
         functionName: "deposit",
         args: [params.vault_id],
         value: BigInt(params.amount),
+        fees,
       });
       return result.hash;
     } catch (error) {
@@ -77,14 +147,22 @@ class SelfDestructingVault {
   }
 
   /**
-   * Release funds from a vault (after condition is met)
+   * Release funds from a vault (after condition is met).
+   * Emits a transfer to the team -> requires a message fee allocation.
    */
   async release(vaultId: string): Promise<string> {
     try {
+      const fees = await this.client.estimateTransactionFeesForWrite({
+        address: this.vaultAddress,
+        functionName: "release",
+        args: [vaultId],
+        account: this.client.account,
+      });
       const result = await this.client.writeContract({
         address: this.vaultAddress,
         functionName: "release",
         args: [vaultId],
+        fees,
       });
       return result.hash;
     } catch (error) {
@@ -94,14 +172,22 @@ class SelfDestructingVault {
   }
 
   /**
-   * Refund funds from a vault (after deadline without condition met)
+   * Refund funds to depositors (condition not met / deadline passed).
+   * Emits one transfer PER DEPOSITOR -> requires a message fee allocation.
    */
   async refund(vaultId: string): Promise<string> {
     try {
+      const fees = await this.client.estimateTransactionFeesForWrite({
+        address: this.vaultAddress,
+        functionName: "refund",
+        args: [vaultId],
+        account: this.client.account,
+      });
       const result = await this.client.writeContract({
         address: this.vaultAddress,
         functionName: "refund",
         args: [vaultId],
+        fees,
       });
       return result.hash;
     } catch (error) {
@@ -168,6 +254,21 @@ class SelfDestructingVault {
         });
       }
 
+      // Plain object map (some SDK versions decode TreeMap to a JS object)
+      if (vaults && typeof vaults === "object") {
+        return Object.entries(vaults).map(([id, vaultData]: [string, any]) => {
+          if (vaultData instanceof Map) {
+            const obj = Array.from(vaultData.entries()).reduce(
+              (acc: any, [k, v]: any) => { acc[k] = v; return acc; },
+              {} as Record<string, any>
+            ) as Vault;
+            obj.id = id;
+            return obj;
+          }
+          return { ...(vaultData as Vault), id };
+        });
+      }
+
       return [];
     } catch (error) {
       console.error("Error fetching vaults:", error);
@@ -176,16 +277,17 @@ class SelfDestructingVault {
   }
 
   /**
-   * Get the verdict of a vault's condition
+   * Get the raw verdict dict for a vault's condition.
+   * Shape: { decision: "success" | "failure" | "pending", reason: string, ... }
    */
-  async getVerdict(vaultId: string): Promise<boolean | null> {
+  async getVerdict(vaultId: string): Promise<any | null> {
     try {
       const verdict = await this.client.readContract({
-        address: this.vaultAddress,
+        address: this.conditionAddress,
         functionName: "get_verdict",
         args: [vaultId],
       });
-      return verdict as boolean;
+      return verdict ?? null;
     } catch (error) {
       console.error("Error fetching verdict:", error);
       return null;
@@ -193,19 +295,19 @@ class SelfDestructingVault {
   }
 
   /**
-   * Get the condition details for a vault
+   * Get the condition details (dict) for a vault from the governor contract.
    */
-  async getCondition(vaultId: string): Promise<string> {
+  async getCondition(vaultId: string): Promise<any | null> {
     try {
       const condition = await this.client.readContract({
-        address: this.vaultAddress,
+        address: this.conditionAddress,
         functionName: "get_condition",
         args: [vaultId],
       });
-      return condition as string;
+      return condition ?? null;
     } catch (error) {
       console.error("Error fetching condition:", error);
-      return "";
+      return null;
     }
   }
 }

@@ -18,12 +18,12 @@ export default function HomePage() {
           {/* Hero Section */}
           <div className="text-center mb-8 animate-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              Self-Destructing Vault
+              Ecosystem Fund Guardian
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Funds that release or return themselves based on conditions.
+              Fund teams that ship, without trusting them blindly.
               <br />
-              Create vaults, deposit funds, and let smart contracts handle the rest.
+              Backers pledge to a project. Meet the commitments, the team gets funded — miss them, and every backer is refunded.
             </p>
           </div>
 
@@ -43,21 +43,21 @@ export default function HomePage() {
             <h2 className="text-2xl font-bold mb-4">How it Works</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
-                <div className="text-accent font-bold text-lg">1. Create a Vault</div>
+                <div className="text-accent font-bold text-lg">1. Open a Fund</div>
                 <p className="text-sm text-muted-foreground">
-                  Connect your wallet and create a vault with a condition, deadline, and team address. Set the rules for fund release.
+                  A team opens a fund with its commitments, a check URL, and a deadline (often the launch date). Those commitments become the release condition.
                 </p>
               </div>
               <div className="space-y-2">
-                <div className="text-accent font-bold text-lg">2. Deposit Funds</div>
+                <div className="text-accent font-bold text-lg">2. Backers Pledge</div>
                 <p className="text-sm text-muted-foreground">
-                  Deposit GEN tokens into the vault. Funds are locked until the condition is met or the deadline passes.
+                  Supporters pledge GEN to the project. Funds are held by the contract until the commitments are verified or the deadline passes.
                 </p>
               </div>
               <div className="space-y-2">
-                <div className="text-accent font-bold text-lg">3. Automatic Resolution</div>
+                <div className="text-accent font-bold text-lg">3. Verified Settlement</div>
                 <p className="text-sm text-muted-foreground">
-                  GenLayer's AI checks the condition. If met, funds release to the team. If not, depositors get refunds.
+                  GenLayer's AI checks the commitment at the deadline. Met — the team is funded. Missed — every backer is refunded. No middleman decides.
                 </p>
               </div>
             </div>

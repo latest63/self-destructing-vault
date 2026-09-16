@@ -17,7 +17,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Ecosystem Fund Guardian",
+  title: "ShipGuard",
   description:
     "Fund teams that ship, without trusting them blindly. Backers pledge to a project — meet the commitments, the team gets funded; miss them, and every backer is refunded. Settled by GenLayer's AI against the project's own repos and links.",
   manifest: "/site.webmanifest",

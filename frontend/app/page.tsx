@@ -18,7 +18,7 @@ export default function HomePage() {
           {/* Hero Section */}
           <div className="text-center mb-8 animate-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              Ecosystem Fund Guardian
+              ShipGuard
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
               Fund teams that ship, without trusting them blindly.

@@ -1,5 +1,5 @@
 /**
- * TypeScript types for GenLayer Self-Destructing Vault contract
+ * TypeScript types for the ShipGuard contract (vault + condition governor)
  *
  * These mirror the on-chain return shapes exactly. Note that the contracts
  * return dicts, not primitives, for condition/verdict reads.

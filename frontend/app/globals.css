@@ -11,7 +11,7 @@
   --font-body: var(--font-jetbrains-mono), 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
   --font-display: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* Lemon theme: pure black base, lime accent (ported from Ecosystem Fund Guardian) */
+  /* Lemon theme: pure black base, lime accent (ported from the EFG design system) */
   --background: #000000;
   --foreground: #ffffff;
 

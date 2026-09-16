@@ -204,7 +204,7 @@ export function CreateVaultModal() {
       </DialogTrigger>
       <DialogContent className="brand-card border-2 sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Open an Ecosystem Fund</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Open a ShipGuard Fund</DialogTitle>
           <DialogDescription>
             Define the team's commitments, the check URL, and the deadline. Backers pledge; the AI settles it.
           </DialogDescription>

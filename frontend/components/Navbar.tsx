@@ -84,13 +84,13 @@ export function Navbar() {
                 {/* Show mark only on mobile, full logo on desktop */}
                 <LogoMark size="md" className="flex md:hidden" />
                 <Logo size="md" className="hidden md:flex" />
-                <span className="text-lg md:text-xl font-bold ml-2">Ecosystem Fund Guardian</span>
+                <span className="text-lg md:text-xl font-bold ml-2">ShipGuard</span>
               </div>
 
-              {/* Center: Stats */}
+              {/* Center: Tagline */}
               <div className="hidden md:flex items-center gap-6 text-sm">
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">Ecosystem Fund Guardian</span>
+                  <span className="text-muted-foreground">Fund teams that ship</span>
                 </div>
               </div>
 

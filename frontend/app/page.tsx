@@ -1,9 +1,12 @@
+"use client";
+
 import { Navbar } from "@/components/Navbar";
 import { CreateVaultModal } from "@/components/CreateVaultModal";
 import { RaiseCarousel } from "@/components/RaiseCarousel";
-import { fetchRaises } from "@/lib/raises";
+import { fetchRaises, type ShippingRaise } from "@/lib/raises";
 import { Coins, ShieldCheck, Gavel } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
 const STEPS = [
   {
@@ -45,7 +48,7 @@ const ROADMAP = [
   {
     status: "Shipped",
     title: "Refund safety net",
-    body: "After the close date, backers can always claim their refund. A team that goes silent cannot hold the funds.",
+    body: "After the close date, backers can always claim their refund. A team that goes quiet cannot hold the funds.",
   },
   {
     status: "Next",
@@ -64,8 +67,16 @@ const ROADMAP = [
   },
 ];
 
-export default async function HomePage() {
-  const raises = await fetchRaises();
+
+
+export default function HomePage() {
+  const [raises, setRaises] = useState<ShippingRaise[]>([]);
+
+  useEffect(() => {
+    fetchRaises().then(setRaises).catch(() => {
+      // Fallback handled in fetchRaises
+    });
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -94,8 +105,6 @@ export default async function HomePage() {
               <Button
                 variant="secondary"
                 size="default"
-                disabled
-                className="cursor-default"
               >
                 Back a raise
               </Button>

@@ -10,25 +10,59 @@ const STEPS = [
   {
     icon: Coins,
     label: "Open a raise",
-    body: "Set the team's wallet, the roadmap, the evidence URL, and the close date. Those four things are the whole contract.",
+    body: "Set the team's wallet, the condition, the evidence URL, and the close date. Those four things are the whole contract.",
   },
   {
     icon: ShieldCheck,
     label: "Backers deposit",
-    body: "Anyone can deposit GEN into the raise. It sits in the contract — the team cannot touch it until the roadmap is verified.",
+    body: "Anyone can deposit GEN into the raise. It sits in the contract — the team cannot touch it until the condition is verified.",
   },
   {
     icon: Gavel,
     label: "Verify and settle",
-    body: "At the close date, GenLayer's AI reads the evidence URL. Roadmap met — funds release to the team. Missed — every backer refunds.",
+    body: "At the close date, GenLayer's AI reads the evidence URL. Condition met — funds release to the team. Not met — every backer refunds.",
   },
 ];
 
 const TIMELINE = [
-  { label: "Open the raise", detail: "Roadmap + date" },
+  { label: "Open the raise", detail: "Condition + date" },
   { label: "Backers deposit", detail: "GEN into the raise" },
   { label: "AI reads evidence", detail: "Checks the URL" },
   { label: "Release or refund", detail: "One of two exits" },
+];
+
+// ShipGuard's own roadmap — the product, not any individual raise.
+const ROADMAP = [
+  {
+    status: "Shipped",
+    title: "Escrowed raises",
+    body: "A team opens a raise with one condition, one evidence URL, and a close date. Backers deposit GEN into the contract.",
+  },
+  {
+    status: "Shipped",
+    title: "AI-verified settlement",
+    body: "GenLayer validators read the evidence URL and settle to one of two endings — release to the team, or refund every backer.",
+  },
+  {
+    status: "Shipped",
+    title: "Refund safety net",
+    body: "Past the close date, backers can always withdraw. A team that goes quiet cannot hold the funds.",
+  },
+  {
+    status: "Next",
+    title: "Multi-milestone raises",
+    body: "Split a raise into stages, each with its own condition and date, releasing in tranches as each stage is verified.",
+  },
+  {
+    status: "Next",
+    title: "Repository tracking",
+    body: "Point a condition at a public repo and let validators check commit activity directly, instead of a single evidence page.",
+  },
+  {
+    status: "Exploring",
+    title: "Dispute window",
+    body: "A short period after a verdict where either side can submit counter-evidence before funds move.",
+  },
 ];
 
 export default function HomePage() {
@@ -46,13 +80,13 @@ export default function HomePage() {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight mb-5">
               Fund a team.
               <br />
-              Hold it to its <span className="text-primary">roadmap</span>.
+              Hold it to its <span className="text-primary">condition</span>.
             </h1>
 
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl mb-8">
-              A team opens a raise with a roadmap, an evidence URL, and a close
-              date. Backers deposit GEN. At the close date, AI reads the
-              evidence — if the roadmap is met the funds release to the team,
+              A team opens a raise with a condition, an evidence URL, and a
+              close date. Backers deposit GEN. At the close date, AI reads the
+              evidence — if the condition is met the funds release to the team,
               and if it isn&apos;t, every backer gets their GEN back.
             </p>
 
@@ -86,12 +120,46 @@ export default function HomePage() {
             <div>
               <h2 className="text-2xl font-bold mb-1">Open raises</h2>
               <p className="text-sm text-muted-foreground">
-                Each raise, with its roadmap, close date, and evidence link.
+                Each raise, with its condition, close date, and evidence link.
               </p>
             </div>
           </div>
 
           <VaultList />
+        </section>
+
+        {/* ── Roadmap ──────────────────────────────────────── */}
+        <section className="border-t border-border">
+          <div className="shell section">
+            <p className="eyebrow mb-3">Roadmap</p>
+            <h2 className="text-2xl md:text-3xl font-bold mb-3 max-w-2xl">
+              What ShipGuard does today, and what comes next.
+            </h2>
+            <p className="text-sm text-muted-foreground mb-10 max-w-2xl leading-relaxed">
+              Everything under &ldquo;Shipped&rdquo; is live on Studio Next. The
+              rest is planned — no dates promised until each one is built.
+            </p>
+
+            <ol className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border border border-border">
+              {ROADMAP.map((item) => (
+                <li key={item.title} className="bg-background p-6 md:p-8 flex flex-col">
+                  <span
+                    className={`eyebrow mb-4 inline-flex w-fit px-2 py-1 border ${
+                      item.status === "Shipped"
+                        ? "text-primary border-primary/40"
+                        : "text-muted-foreground border-border"
+                    }`}
+                  >
+                    {item.status}
+                  </span>
+                  <h3 className="text-base font-semibold mb-2">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {item.body}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </div>
         </section>
 
         {/* ── How it works ─────────────────────────────────── */}

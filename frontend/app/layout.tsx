@@ -27,7 +27,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ShipGuard",
   description:
-    "Escrowed funding for teams. A team opens a raise with a roadmap, an evidence URL, and a close date. Backers deposit GEN. At the close date GenLayer's AI reads the evidence — roadmap met, the funds release to the team; missed, every backer is refunded.",
+    "Escrowed funding for teams. A team opens a raise with a condition, an evidence URL, and a close date. Backers deposit GEN. At the close date GenLayer's AI reads the evidence — condition met, the funds release to the team; not met, every backer is refunded.",
   manifest: "/site.webmanifest",
   icons: {
     icon: [

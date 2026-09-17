@@ -74,6 +74,15 @@ export function getContractAddress(): string {
 }
 
 /**
+ * Get the GitHub verifier contract address (Studio Next 61997).
+ */
+export function getGithubVerifyContractAddress(): `0x${string}` {
+  const address = process.env.NEXT_PUBLIC_GITHUB_VERIFY_CONTRACT;
+  if (!address) return "0x0000000000000000000000000000000000000000";
+  return address as `0x${string}`;
+}
+
+/**
  * Check if MetaMask is installed
  */
 export function isMetaMaskInstalled(): boolean {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Rocket, Calendar, Users, ArrowLeft, Link, Loader2, ShieldCheck } from "lucide-react";
+import { Rocket, Calendar, Users, ArrowLeft, Link, Loader2, ShieldCheck, Github } from "lucide-react";
 import { createClient } from "genlayer-js";
 import { useInvalidateVaultsData } from "@/lib/hooks/useVault";
 import {
@@ -9,6 +9,7 @@ import {
   GENLAYER_NETWORK,
   getVaultContractAddress,
   getConditionContractAddress,
+  getGithubVerifyContractAddress,
 } from "@/lib/genlayer/client";
 import { useTransactionKit } from "@/lib/genlayer/kit";
 import { useWallet } from "@/lib/genlayer/wallet";
@@ -18,6 +19,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+
+const GITHUB_VERIFY_CONTRACT = getGithubVerifyContractAddress();
 
 export function CreateVaultModal() {
   const { isConnected, address, isLoading } = useWallet();
@@ -40,6 +43,36 @@ export function CreateVaultModal() {
     condition: "",
     checkUrl: "",
   });
+
+  // ── GitHub verification gate ────────────────────────────────────────────
+  // Launching a raise requires a verified GitHub identity (on-chain).
+  const [ghHandle, setGhHandle] = useState<`0x${string}` | string>("");
+  const [ghChecked, setGhChecked] = useState(false);
+
+  useEffect(() => {
+    if (!isConnected || !address || !GITHUB_VERIFY_CONTRACT || !isOpen) {
+      setGhChecked(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const client = createClient({ chain: GENLAYER_CHAIN });
+        const h = await client.readContract({
+          address: GITHUB_VERIFY_CONTRACT as `0x${string}`,
+          functionName: "get_gh_handle",
+          args: [address],
+        });
+        if (!cancelled) {
+          setGhHandle(typeof h === "string" ? h : h?.toString() || "");
+          setGhChecked(true);
+        }
+      } catch {
+        if (!cancelled) setGhChecked(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isConnected, address, isOpen]);
 
   // Convert deadline to Unix timestamp
   const deadlineTimestamp = useMemo(() => {
@@ -64,6 +97,14 @@ export function CreateVaultModal() {
         description:
           "Set NEXT_PUBLIC_VAULT_CONTRACT and NEXT_PUBLIC_CONDITION_CONTRACT in your .env file.",
       });
+      return;
+    }
+    // GitHub verification gate — must have a verified GitHub handle on-chain
+    if (GITHUB_VERIFY_CONTRACT && ghChecked && !ghHandle) {
+      error("Verify your GitHub first", {
+        description: "Open your profile, verify your GitHub account, then come back to launch.",
+      });
+      window.location.href = "/profile";
       return;
     }
 
@@ -229,6 +270,43 @@ export function CreateVaultModal() {
             close date.
           </DialogDescription>
         </DialogHeader>
+
+        {/* GitHub verification gate notice */}
+        {GITHUB_VERIFY_CONTRACT && isConnected && ghChecked && !ghHandle && (
+          <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm space-y-2">
+            <div className="flex items-center gap-2 text-destructive font-medium">
+              <Github className="w-4 h-4" />
+              GitHub verification required
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              You must verify your GitHub account on-chain before launching a
+              raise — this stops people pointing a raise at someone else&apos;s
+              GitHub as their source of truth.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                setIsOpen(false);
+                window.location.href = "/profile";
+              }}
+            >
+              <Github className="w-4 h-4 mr-1.5" />
+              Verify on profile
+            </Button>
+          </div>
+        )}
+
+        {ghHandle && (
+          <div className="mt-4 flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2.5">
+            <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
+            <p className="text-xs text-primary/90">
+              Launching as verified GitHub <strong>@{ghHandle}</strong>
+            </p>
+          </div>
+        )}
 
         {step === "review" ? (
           <div className="mt-4 space-y-4">

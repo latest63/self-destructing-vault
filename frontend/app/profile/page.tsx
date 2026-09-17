@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fetchRaises, type ShippingRaise } from "@/lib/raises";
+import { fetchProfile, type Profile, upsertProfile } from "@/lib/profiles";
 import { createClient } from "genlayer-js";
 import {
   GENLAYER_CHAIN,
@@ -77,6 +78,12 @@ export default function ProfilePage() {
   const [ghVerifiedHandle, setGhVerifiedHandle] = useState("");
   const [ghChecking, setGhChecking] = useState(true);
 
+  // ── Profile state (from Supabase `profiles` table) ───────────────────────
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [displayName, setDisplayName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+
   // On connect: check whether the wallet already has a verified GitHub handle
   useEffect(() => {
     if (!isConnected || !address || !GITHUB_VERIFY_CONTRACT) {
@@ -105,6 +112,26 @@ export default function ProfilePage() {
     return () => { cancelled = true; };
   }, [isConnected, address]);
 
+  // Fetch Supabase profile when wallet connects
+  useEffect(() => {
+    if (!isConnected || !address) {
+      setProfile(null);
+      setDisplayName("");
+      setAvatarUrl("");
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const p = await fetchProfile(address);
+      if (!cancelled) {
+        setProfile(p);
+        setDisplayName(p.display_name || "");
+        setAvatarUrl(p.avatar_url || "");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isConnected, address]);
+
   useEffect(() => {
     fetchRaises()
       .then(setRaises)
@@ -120,6 +147,26 @@ export default function ProfilePage() {
   };
 
   const shortAddr = (a: string) => `${a.slice(0, 6)}...${a.slice(-4)}`;
+
+  // ── Save profile (display name + avatar) to Supabase ─────────────────────
+  const saveProfile = async () => {
+    if (!address) return;
+    setSavingProfile(true);
+    try {
+      const updated = await upsertProfile(address, {
+        display_name: displayName || null,
+        avatar_url: avatarUrl || null,
+      });
+      if (updated) {
+        setProfile(updated);
+        success("Profile saved", { description: "Your display name and avatar are updated." });
+      }
+    } catch (e: any) {
+      error("Could not save profile", { description: e?.message });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   // ── GitHub verify: start (generate code) ───────────────────────────────
   const ghStart = () => {
@@ -315,6 +362,52 @@ export default function ProfilePage() {
                         <p className="text-[11px] text-muted-foreground">Token</p>
                       </div>
                     </div>
+
+                    {/* Display name */}
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground block">
+                        Display name
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Alex from Acme"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        className="w-full bg-white/[0.03] border border-border rounded-lg px-3 py-2.5 text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50"
+                      />
+                    </div>
+
+                    {/* Avatar URL */}
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground block">
+                        Avatar URL
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        value={avatarUrl}
+                        onChange={(e) => setAvatarUrl(e.target.value)}
+                        className="w-full bg-white/[0.03] border border-border rounded-lg px-3 py-2.5 text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50"
+                      />
+                    </div>
+
+                    {/* Save button */}
+                    {profile && (displayName !== (profile.display_name || "") || avatarUrl !== (profile.avatar_url || "")) && (
+                      <Button
+                        variant="gradient"
+                        size="sm"
+                        onClick={saveProfile}
+                        disabled={savingProfile}
+                        className="gap-2"
+                      >
+                        {savingProfile ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Check className="w-3 h-3" />
+                        )}
+                        Save profile
+                      </Button>
+                    )}
                   </>
                 ) : (
                   <div className="flex flex-col items-center py-4">

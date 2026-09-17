@@ -100,7 +100,7 @@ class GitHubVerifier(gl.contract.Contract):
             if not gist_url.startswith("https://gist.github.com/"):
                 raise gl.vm.UserError("gist_url must start with https://gist.github.com/")
 
-        now = gl.message_raw["datetime"]
+        now = str(gl.message.raw["datetime"])
         self.count = gl.u256(int(self.count) + 1)
 
         self.verifications[wallet_addr] = Verification(
@@ -161,7 +161,7 @@ class GitHubVerifier(gl.contract.Contract):
 
         raw = json.loads(gl.eq_principle.prompt_comparative(
             nd,
-            principle="All validators must agree on the 'verified' field. Both must return true or both must return false.",
+            "All validators must agree on the 'verified' field. Both must return true or both must return false.",
         ))
 
         verdict = "verified" if raw.get("verified", False) else "rejected"

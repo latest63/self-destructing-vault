@@ -31,10 +31,8 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
   metadataBase: new URL("https://shipguard-pad.vercel.app"),
   icons: {
-    icon: [
-      { url: "/favicon.png", type: "image/png", sizes: "any" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
-    ],
+    icon: [{ url: "/favicon.png", type: "image/png", sizes: "any" }],
+    apple: [{ url: "/favicon.png", sizes: "180x180" }],
   },
   openGraph: {
     title: "ShipGuard — AI-verified fundraising",

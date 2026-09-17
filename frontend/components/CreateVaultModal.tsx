@@ -46,7 +46,7 @@ export function CreateVaultModal() {
 
   // ── GitHub verification gate ────────────────────────────────────────────
   // Launching a raise requires a verified GitHub identity (on-chain).
-  const [ghHandle, setGhHandle] = useState<`0x${string}` | string>("");
+  const [ghHandle, setGhHandle] = useState<string>("");
   const [ghChecked, setGhChecked] = useState(false);
 
   useEffect(() => {

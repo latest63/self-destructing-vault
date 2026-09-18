@@ -4,7 +4,7 @@
  * A project is created/managed by a wallet. Each project has:
  *   - name: project/display name
  *   - github_handle: verified on-chain GitHub identity (nullable until verified)
- *   - avatar_url: link to avatar (can be remote URL or data URL)
+ *   - logo_url: URL to project logo (was avatar_url, renamed)
  *   - link: project website / evidence URL
  *   - profile_data: arbitrary JSON for extra fields (future-proofing)
  *   - created_at / updated_at
@@ -112,65 +112,6 @@ export async function upsertProject(
   } catch (err) {
     console.error("[projects] upsert failed:", err);
     return null;
-  }
-}
-
-/**
- * Upload an avatar file to Supabase Storage (avatars bucket).
- * Returns the public URL of the uploaded file, or null on failure.
- * Falls back to data URL if Supabase is not configured.
- */
-export async function uploadAvatar(
-  walletAddress: string,
-  file: File
-): Promise<{ url: string | null; isDataUrl: boolean }> {
-  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-  if (file.size > MAX_SIZE) {
-    throw new Error("File too large — max 5MB");
-  }
-
-  if (!hasSupabase) {
-    // Fallback: read as data URL for local/preview mode
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve({ url: reader.result as string, isDataUrl: true });
-      reader.onerror = () => resolve({ url: null, isDataUrl: false });
-      reader.readAsDataURL(file);
-    });
-  }
-
-  try {
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    const ext = file.name.split(".").pop() || "png";
-    const fileName = `${walletAddress.toLowerCase()}-${Date.now()}.${ext}`;
-
-    const { data, error } = await supabase.storage
-      .from("avatars")
-      .upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: true,
-      });
-
-    if (error) {
-      console.error("[projects] avatar upload failed:", error.message);
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve({ url: reader.result as string, isDataUrl: true });
-        reader.onerror = () => resolve({ url: null, isDataUrl: false });
-        reader.readAsDataURL(file);
-      });
-    }
-
-    const publicResult = supabase.storage.from("avatars").getPublicUrl(data.path);
-    return { url: publicResult.data?.publicUrl ?? null, isDataUrl: false };
-  } catch (err) {
-    console.error("[projects] avatar upload failed:", err);
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve({ url: reader.result as string, isDataUrl: true });
-      reader.onerror = () => resolve({ url: null, isDataUrl: false });
-      reader.readAsDataURL(file);
-    });
   }
 }
 

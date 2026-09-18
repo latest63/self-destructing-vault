@@ -17,7 +17,7 @@ import { createClient } from "@supabase/supabase-js";
 
 export interface Project {
   id: string; // uuid, primary key
-  wallet_address: string; // the owner's wallet (indexed)
+  wallet_address: string | null; // the owner's wallet (indexed)
   name: string | null;
   github_handle: string | null;
   avatar_url: string | null;

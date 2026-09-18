@@ -648,12 +648,26 @@ export default function ProjectPage() {
             {isConnected && (
               <div className="grid grid-cols-2 gap-3">
                 <Button
-                  variant="outline"
+                  variant={ghPhase === "verified" ? "gradient" : "outline"}
                   className="flex-col gap-1.5 h-auto py-4 justify-center"
-                  onClick={() => window.dispatchEvent(new Event("shipguard:open-launch"))}
+                  onClick={() => {
+                    if (ghPhase !== "verified") {
+                      error("GitHub verification required", {
+                        description: "You must verify your GitHub account first.",
+                        action: {
+                          label: "Verify now",
+                          onClick: () => setGhPhase("idle")
+                        }
+                      });
+                      return;
+                    }
+                    window.dispatchEvent(new Event("shipguard:open-launch"));
+                  }}
                 >
                   <Rocket className="w-5 h-5" />
-                  <span className="text-xs font-medium">Launch a raise</span>
+                  <span className="text-xs font-medium">
+                    {ghPhase === "verified" ? "Launch a raise" : "Verify GitHub first"}
+                  </span>
                 </Button>
                 <Button
                   variant="outline"

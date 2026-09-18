@@ -1,10 +1,9 @@
 "use client";
 
 import { Navbar } from "@/components/Navbar";
-import { CreateVaultModal } from "@/components/CreateVaultModal";
 import { RaiseCarousel } from "@/components/RaiseCarousel";
 import { fetchRaises, type ShippingRaise } from "@/lib/raises";
-import { Coins, ShieldCheck, Gavel } from "lucide-react";
+import { Coins, ShieldCheck, Gavel, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -106,7 +105,15 @@ export default function HomePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-12">
-              <CreateVaultModal />
+              <Button
+                variant="gradient"
+                size="default"
+                onClick={() => router.push("/dashboard")}
+                className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Rocket className="w-4 h-4 mr-2" />
+                Launch a raise
+              </Button>
               <Button
                 variant="gradient"
                 size="default"

@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fetchRaises, type ShippingRaise } from "@/lib/raises";
-import { fetchProject, type Project, upsertProject, uploadAvatar } from "@/lib/projects";
+import { fetchProject, type Project, upsertProject } from "@/lib/projects";
 import { createClient } from "genlayer-js";
 import {
   GENLAYER_CHAIN,
@@ -82,9 +82,7 @@ export default function ProjectPage() {
   // ── Project state (from Supabase `projects` table) ───────────────────────
   const [project, setProject] = useState<Project | null>(null);
   const [displayName, setDisplayName] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [logoUrl, setLogoUrl] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
 
   // On connect: check whether the wallet already has a verified GitHub handle
@@ -120,8 +118,7 @@ export default function ProjectPage() {
     if (!isConnected || !address) {
       setProject(null);
       setDisplayName("");
-      setAvatarUrl("");
-      setAvatarPreview(null);
+      setLogoUrl("");
       return;
     }
     let cancelled = false;
@@ -130,8 +127,7 @@ export default function ProjectPage() {
       if (!cancelled) {
         setProject(p);
         setDisplayName(p.name || "");
-        setAvatarUrl(p.avatar_url || "");
-        setAvatarPreview(p.avatar_url || null);
+        setLogoUrl(p.logo_url || "");
       }
     })();
     return () => { cancelled = true; };
@@ -153,18 +149,18 @@ export default function ProjectPage() {
 
   const shortAddr = (a: string) => `${a.slice(0, 6)}...${a.slice(-4)}`;
 
-  // ── Save project (name + avatar) to Supabase ─────────────────────
+  // ── Save project (name + logo) to Supabase ─────────────────────
   const saveProject = async () => {
     if (!address) return;
     setSavingProfile(true);
     try {
       const updated = await upsertProject(address, {
         name: displayName || null,
-        avatar_url: avatarUrl || null,
+        logo_url: logoUrl || null,
       });
       if (updated) {
         setProject(updated);
-        success("Project saved", { description: "Your project name and avatar are updated." });
+        success("Project saved", { description: "Your project name and logo are updated." });
       }
     } catch (e: any) {
       error("Could not save project", { description: e?.message });
@@ -259,7 +255,7 @@ export default function ProjectPage() {
           await upsertProject(address, {
             github_handle: got,
             name: displayName || null,
-            avatar_url: avatarUrl || null,
+            logo_url: logoUrl || null,
           });
         } catch (projectErr: any) {
           console.warn("[dashboard] Could not sync GitHub handle to Supabase:", projectErr?.message);
@@ -394,57 +390,25 @@ export default function ProjectPage() {
                       />
                     </div>
 
-                    {/* Avatar upload */}
+                    {/* Logo URL */}
                     <div className="space-y-2">
                       <label className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground block">
-                        Avatar
+                        Logo URL
                       </label>
-                      <div className="flex items-center gap-3">
-                        {avatarPreview ? (
-                          <img
-                            src={avatarPreview}
-                            alt="Avatar preview"
-                            className="w-12 h-12 rounded-full object-cover border border-border"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-white/[0.03] border border-border flex items-center justify-center">
-                            <User className="w-5 h-5 text-muted-foreground" />
-                          </div>
-                        )}
-                        <label className="flex-1 cursor-pointer">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={async (e) => {
-                              const f = e.target.files?.[0];
-                              if (!f || !address) return;
-                              setUploadingAvatar(true);
-                              try {
-                                const { url, isDataUrl } = await uploadAvatar(address, f);
-                                if (url) {
-                                  setAvatarPreview(url);
-                                  setAvatarUrl(url);
-                                }
-                              } catch (uploadErr: any) {
-                                error("Upload failed", { description: uploadErr?.message });
-                              } finally {
-                                setUploadingAvatar(false);
-                              }
-                            }}
-                            className="hidden"
-                          />
-                          <span className="text-sm text-primary font-medium">
-                            {uploadingAvatar ? "Uploading…" : "Choose file"}
-                          </span>
-                        </label>
-                      </div>
+                      <input
+                        type="url"
+                        placeholder="https://yourproject.com/logo.png"
+                        value={logoUrl}
+                        onChange={(e) => setLogoUrl(e.target.value)}
+                        className="w-full bg-white/[0.03] border border-border rounded-lg px-3 py-2.5 text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50"
+                      />
                       <p className="text-[11px] text-muted-foreground">
-                        PNG, JPG, GIF, WebP — max 5MB
+                        Direct link to your project logo image
                       </p>
                     </div>
 
-                    {/* Save button */}
-                    {project && (displayName !== project.name || avatarUrl !== project.avatar_url) && (
+                                        {/* Save button */}
+                    {project && (displayName !== project.name || logoUrl !== project.logo_url) && (
                       <Button
                         variant="gradient"
                         size="sm"

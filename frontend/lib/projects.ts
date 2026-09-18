@@ -20,7 +20,7 @@ export interface Project {
   wallet_address: string | null; // the owner's wallet (indexed)
   name: string | null;
   github_handle: string | null;
-  avatar_url: string | null;
+  logo_url: string | null;
   link: string | null;
   profile_data: Record<string, unknown> | null;
   created_at: string | null;
@@ -39,7 +39,7 @@ function emptyProject(walletAddress: string): Project {
     wallet_address: walletAddress.toLowerCase(),
     name: null,
     github_handle: null,
-    avatar_url: null,
+    logo_url: null,
     link: null,
     profile_data: null,
     created_at: new Date().toISOString(),

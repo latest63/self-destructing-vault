@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
-import { Github, Check, Loader2, KeyRound, FileCode } from "lucide-react";
+import { Github, Check, Loader2, KeyRound, FileCode, Rocket } from "lucide-react";
 import { GENLAYER_CHAIN, getGithubVerifyContractAddress } from "@/lib/genlayer/client";
 import { createClient } from "genlayer-js";
+import { useRouter } from "next/navigation";
 
 const GITHUB_VERIFY_CONTRACT = getGithubVerifyContractAddress();
 
@@ -25,16 +26,38 @@ function ghClient(address?: `0x${string}`) {
 
 type GhPhase = "idle" | "code" | "submitting" | "verifying" | "verified";
 
+// CreateCampaign form fields (matching ecosystem-fund-guardian)
+interface CreateCampaignFormData {
+  name: string;
+  logo_url: string;
+  description: string;
+  website: string;
+  twitter: string;
+  telegram: string;
+  discord: string;
+}
+
 export default function ProjectPage() {
   const { address, isConnected } = useAccount();
+  const router = useRouter();
   const [ghPhase, setGhPhase] = useState<GhPhase>("idle");
   const [ghHandle, setGhHandle] = useState("");
   const [ghCode, setGhCode] = useState("");
-  const [ghGistUrl, setGhGistUrl] = useState("");
   const [ghBusy, setGhBusy] = useState(false);
   const [ghError, setGhError] = useState("");
   const [ghVerifiedHandle, setGhVerifiedHandle] = useState("");
   const [ghChecking, setGhChecking] = useState(true);
+
+  // Project creation form state
+  const [form, setForm] = useState<CreateCampaignFormData>({
+    name: "",
+    logo_url: "",
+    description: "",
+    website: "",
+    twitter: "",
+    telegram: "",
+    discord: "",
+  });
 
   // Check if wallet already has a verified GitHub handle
   useEffect(() => {
@@ -67,7 +90,6 @@ export default function ProjectPage() {
   const ghStart = () => {
     setGhError("");
     setGhCode(genCode());
-    setGhGistUrl("");
     setGhPhase("code");
   };
 
@@ -149,6 +171,10 @@ export default function ProjectPage() {
     }
   };
 
+  const handleCreateRaise = () => {
+    router.push("/raise/create");
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow pt-24 pb-20">
@@ -209,6 +235,13 @@ export default function ProjectPage() {
                         You can now launch a raise. The source-of-truth URL you set will be
                         checked against this verified handle.
                       </p>
+                      <button
+                        onClick={handleCreateRaise}
+                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary to-purple-500 text-white rounded-lg hover:opacity-90 transition-colors"
+                      >
+                        <Rocket className="w-4 h-4" />
+                        Create a new raise
+                      </button>
                     </div>
                   ) : ghPhase === "idle" ? (
                     <div className="space-y-4">

@@ -26,17 +26,6 @@ function ghClient(address?: `0x${string}`) {
 
 type GhPhase = "idle" | "code" | "submitting" | "verifying" | "verified";
 
-// CreateCampaign form fields (matching ecosystem-fund-guardian)
-interface CreateCampaignFormData {
-  name: string;
-  logo_url: string;
-  description: string;
-  website: string;
-  twitter: string;
-  telegram: string;
-  discord: string;
-}
-
 export default function ProjectPage() {
   const { address, isConnected } = useAccount();
   const router = useRouter();
@@ -47,17 +36,6 @@ export default function ProjectPage() {
   const [ghError, setGhError] = useState("");
   const [ghVerifiedHandle, setGhVerifiedHandle] = useState("");
   const [ghChecking, setGhChecking] = useState(true);
-
-  // Project creation form state
-  const [form, setForm] = useState<CreateCampaignFormData>({
-    name: "",
-    logo_url: "",
-    description: "",
-    website: "",
-    twitter: "",
-    telegram: "",
-    discord: "",
-  });
 
   // Check if wallet already has a verified GitHub handle
   useEffect(() => {

@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { fetchRaises, type ShippingRaise } from "@/lib/raises";
-import { Loader2, Rocket, Github } from "lucide-react";
+import { Loader2, Rocket, Github, Check } from "lucide-react";
 
 interface CreateCampaignFormData {
   name: string;
@@ -35,18 +34,10 @@ export default function CreateCampaignPage() {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
   };
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      // TODO: Implement submission logic
-      console.log("Create campaign:", form);
-      // After creating, redirect to the raise or back to dashboard
-      router.push("/dashboard");
-    } catch (error) {
-      console.error("Error creating campaign:", error);
-    } finally {
-      setLoading(false);
-    }
+  const handleLaunchRaise = async () => {
+    // Navigate to dashboard which will check GitHub verification
+    // After verification is complete, user can launch the raise
+    router.push("/dashboard");
   };
 
   return (
@@ -176,41 +167,16 @@ export default function CreateCampaignPage() {
                   />
                 </div>
 
-                {/* GitHub Verification Notice */}
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Github className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-blue-900 mb-1">
-                        GitHub verification required
-                      </p>
-                      <p className="text-xs text-blue-700">
-                        Your raise will use a GitHub-verified source of truth. 
-                        Complete verification in your dashboard first.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Submit Button */}
+                {/* Create and Launch Button */}
                 <Button
                   variant="gradient"
                   size="lg"
                   className="w-full gap-2"
-                  onClick={handleSubmit}
+                  onClick={handleLaunchRaise}
                   disabled={loading || !form.name}
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Creating campaign...
-                    </>
-                  ) : (
-                    <>
-                      <Rocket className="w-4 h-4" />
-                      Create Campaign
-                    </>
-                  )}
+                  <Rocket className="w-4 h-4" />
+                  Launch raise
                 </Button>
               </div>
             </div>

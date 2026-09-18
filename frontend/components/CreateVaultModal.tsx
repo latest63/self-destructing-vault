@@ -112,14 +112,14 @@ export function CreateVaultModal() {
     if (!ghHandle) {
       error("Verify your GitHub first", {
         description:
-          "You must verify your GitHub account on your profile page before " +
+          "You must verify your GitHub account on your dashboard page before " +
           "launching a raise. This prevents linking a raise to someone else's " +
           "GitHub as the source of truth.",
         action: {
-          label: "Go verify now",
+          label: "Go to dashboard",
           onClick: () => {
             setIsOpen(false);
-            window.location.href = "/profile";
+            window.location.href = "/dashboard";
           },
         },
       });
@@ -267,14 +267,14 @@ export function CreateVaultModal() {
     if (GITHUB_VERIFY_CONTRACT && ghChecked && !ghHandle) {
       error("Verify your GitHub first", {
         description:
-          "You must verify your GitHub account on your profile page before " +
+          "You must verify your GitHub account on your dashboard page before " +
           "launching a raise. This prevents linking a raise to someone else's " +
           "GitHub as the source of truth.",
         action: {
-          label: "Go verify now",
+          label: "Go to dashboard",
           onClick: () => {
             setIsOpen(false);
-            window.location.href = "/profile";
+            window.location.href = "/dashboard";
           },
         },
       });
@@ -362,11 +362,11 @@ export function CreateVaultModal() {
                 className="w-full"
                 onClick={() => {
                   setIsOpen(false);
-                  window.location.href = "/profile";
+                  window.location.href = "/dashboard";
                 }}
               >
                 <Github className="w-4 h-4 mr-1.5" />
-                Verify on profile
+                Verify on dashboard
               </Button>
             </div>
           ) : null

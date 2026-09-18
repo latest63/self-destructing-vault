@@ -1,25 +1,28 @@
 /**
- * User profiles — backed by Supabase `profiles` table.
+ * Project records — backed by Supabase `projects` table.
  *
- * Columns:
- *   wallet_address (Primary key, text)
- *   github_handle (text, nullable)
- *   display_name (text, nullable)
- *   avatar_url (text, nullable)
- *   created_at (timestamp)
- *   updated_at (timestamp)
+ * A project is created/managed by a wallet. Each project has:
+ *   - name: project/display name
+ *   - github_handle: verified on-chain GitHub identity (nullable until verified)
+ *   - avatar_url: link to avatar (can be remote URL or data URL)
+ *   - link: project website / evidence URL
+ *   - profile_data: arbitrary JSON for extra fields (future-proofing)
+ *   - created_at / updated_at
  *
- * If Supabase is not configured or profile doesn't exist,
- * returns a minimal profile object with wallet_address only.
+ * If Supabase is not configured or project doesn't exist,
+ * a minimal project object is returned with just the wallet_address.
  */
 
 import { createClient } from "@supabase/supabase-js";
 
-export interface Profile {
-  wallet_address: string;
+export interface Project {
+  id: string; // uuid, primary key
+  wallet_address: string; // the owner's wallet (indexed)
+  name: string | null;
   github_handle: string | null;
-  display_name: string | null;
   avatar_url: string | null;
+  link: string | null;
+  profile_data: Record<string, unknown> | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -29,64 +32,66 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 const hasSupabase = Boolean(supabaseUrl && supabaseKey);
 
-/** Create a minimal profile for a wallet address (local fallback) */
-function emptyProfile(walletAddress: string): Profile {
+/** Create a minimal project for a wallet address (local fallback) */
+function emptyProject(walletAddress: string): Project {
   return {
-    wallet_address: walletAddress,
+    id: `local-${walletAddress.toLowerCase()}`,
+    wallet_address: walletAddress.toLowerCase(),
+    name: null,
     github_handle: null,
-    display_name: null,
     avatar_url: null,
+    link: null,
+    profile_data: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
 }
 
 /**
- * Fetch a user's profile by wallet address.
- * Returns the profile from Supabase, or a minimal local fallback.
+ * Fetch a project by wallet address.
+ * Returns the project from Supabase, or a minimal local fallback.
  */
-export async function fetchProfile(walletAddress: string): Promise<Profile> {
+export async function fetchProject(walletAddress: string): Promise<Project> {
   if (!hasSupabase) {
-    return emptyProfile(walletAddress);
+    return emptyProject(walletAddress);
   }
 
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
     const { data, error } = await supabase
-      .from("profiles")
+      .from("projects")
       .select("*")
       .eq("wallet_address", walletAddress.toLowerCase())
       .single();
 
     if (error || !data) {
-      // Profile doesn't exist — return minimal fallback
-      return emptyProfile(walletAddress);
+      return emptyProject(walletAddress);
     }
 
     return data;
   } catch (err) {
-    console.error("[profiles] fetch failed:", err);
-    return emptyProfile(walletAddress);
+    console.error("[projects] fetch failed:", err);
+    return emptyProject(walletAddress);
   }
 }
 
 /**
- * Upsert a profile (insert new or update existing).
+ * Upsert a project (insert new or update existing).
  * Uses wallet_address as the primary key for the upsert.
  */
-export async function upsertProfile(
+export async function upsertProject(
   walletAddress: string,
-  partial: Partial<Profile>
-): Promise<Profile | null> {
+  partial: Partial<Omit<Project, "id" | "wallet_address" | "created_at" | "updated_at">>
+): Promise<Project | null> {
   if (!hasSupabase) {
-    console.warn("[profiles] Supabase not configured, upsert skipped");
-    return { ...emptyProfile(walletAddress), ...partial };
+    console.warn("[projects] Supabase not configured, upsert skipped");
+    return { ...emptyProject(walletAddress), ...partial };
   }
 
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
     const { data, error } = await supabase
-      .from("profiles")
+      .from("projects")
       .upsert(
         {
           wallet_address: walletAddress.toLowerCase(),
@@ -99,13 +104,13 @@ export async function upsertProfile(
       .single();
 
     if (error) {
-      console.error("[profiles] upsert failed:", error.message);
+      console.error("[projects] upsert failed:", error.message);
       return null;
     }
 
     return data;
   } catch (err) {
-    console.error("[profiles] upsert failed:", err);
+    console.error("[projects] upsert failed:", err);
     return null;
   }
 }
@@ -147,8 +152,7 @@ export async function uploadAvatar(
       });
 
     if (error) {
-      console.error("[profiles] avatar upload failed:", error.message);
-      // Fallback to data URL
+      console.error("[projects] avatar upload failed:", error.message);
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve({ url: reader.result as string, isDataUrl: true });
@@ -160,8 +164,7 @@ export async function uploadAvatar(
     const publicResult = supabase.storage.from("avatars").getPublicUrl(data.path);
     return { url: publicResult.data?.publicUrl ?? null, isDataUrl: false };
   } catch (err) {
-    console.error("[profiles] avatar upload failed:", err);
-    // Fallback to data URL
+    console.error("[projects] avatar upload failed:", err);
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = () => resolve({ url: reader.result as string, isDataUrl: true });
@@ -172,14 +175,37 @@ export async function uploadAvatar(
 }
 
 /**
- * Clear all profiles — for local dev/testing only.
+ * Check whether the wallet has a verified GitHub handle on-chain.
+ * This is used as the gate for launching raises.
  */
-export async function clearProfiles(): Promise<void> {
+export async function checkProjectVerified(
+  walletAddress: string
+): Promise<{ verified: boolean; github_handle: string | null }> {
+  if (!hasSupabase) {
+    // Local fallback — assume not verified
+    return { verified: false, github_handle: null };
+  }
+
+  try {
+    const project = await fetchProject(walletAddress);
+    if (project.github_handle) {
+      return { verified: true, github_handle: project.github_handle };
+    }
+    return { verified: false, github_handle: null };
+  } catch {
+    return { verified: false, github_handle: null };
+  }
+}
+
+/**
+ * Clear all projects — for local dev/testing only.
+ */
+export async function clearProjects(): Promise<void> {
   if (!hasSupabase) return;
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
-    await supabase.from("profiles").delete().neq("wallet_address", "0x0000000000000000000000000000000000000000");
+    await supabase.from("projects").delete().neq("wallet_address", "0x0000000000000000000000000000000000000000");
   } catch (err) {
-    console.error("[profiles] clear failed:", err);
+    console.error("[projects] clear failed:", err);
   }
 }

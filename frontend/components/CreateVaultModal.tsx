@@ -46,15 +46,23 @@ export function CreateVaultModal() {
 
   // ── GitHub verification gate ────────────────────────────────────────────
   // Launching a raise requires a verified GitHub identity (on-chain).
+  // The verification status is checked by reading get_gh_handle from the
+  // GitHubVerifier contract; if the handle is empty, the user must verify first.
   const [ghHandle, setGhHandle] = useState<string>("");
   const [ghChecked, setGhChecked] = useState(false);
+  const [ghChecking, setGhChecking] = useState(false);
 
+  // Check if the currently connected wallet has a verified GitHub handle
+  // on-chain. Runs when wallet/address or dialog open state changes.
   useEffect(() => {
     if (!isConnected || !address || !GITHUB_VERIFY_CONTRACT || !isOpen) {
+      setGhHandle("");
       setGhChecked(false);
+      setGhChecking(false);
       return;
     }
     let cancelled = false;
+    setGhChecking(true);
     (async () => {
       try {
         const client = createClient({ chain: GENLAYER_CHAIN });
@@ -68,11 +76,57 @@ export function CreateVaultModal() {
           setGhChecked(true);
         }
       } catch {
-        if (!cancelled) setGhChecked(true);
+        if (!cancelled) {
+          // If contract is not deployed or chain is not ready, treat as not verified
+          setGhHandle("");
+          setGhChecked(true);
+        }
+      } finally {
+        if (!cancelled) setGhChecking(false);
       }
     })();
     return () => { cancelled = true; };
   }, [isConnected, address, isOpen]);
+
+  // Whether the user is allowed to launch: must be connected, address present,
+  // verification check complete, and a GitHub handle found on-chain.
+  const canLaunch = isConnected && !!address && ghChecked && !!ghHandle;
+
+  // Guard that blocks launch when the user hasn't verified GitHub
+  const requireGitHubVerification = (): boolean => {
+    if (!isConnected || !address) {
+      // Wallet not connected — handled separately in handleSubmit
+      return true;
+    }
+    if (!GITHUB_VERIFY_CONTRACT) {
+      error("GitHub verification not configured", {
+        description: "The GitHub verifier contract is not deployed.",
+      });
+      return false;
+    }
+    if (!ghChecked) {
+      // Still checking — shouldn't happen on button click, but guard anyway
+      error("Please wait", { description: "Checking your verification status…" });
+      return false;
+    }
+    if (!ghHandle) {
+      error("Verify your GitHub first", {
+        description:
+          "You must verify your GitHub account on your profile page before " +
+          "launching a raise. This prevents linking a raise to someone else's " +
+          "GitHub as the source of truth.",
+        action: {
+          label: "Go verify now",
+          onClick: () => {
+            setIsOpen(false);
+            window.location.href = "/profile";
+          },
+        },
+      });
+      return false;
+    }
+    return true;
+  };
 
   // Convert deadline to Unix timestamp
   const deadlineTimestamp = useMemo(() => {
@@ -100,13 +154,7 @@ export function CreateVaultModal() {
       return;
     }
     // GitHub verification gate — must have a verified GitHub handle on-chain
-    if (GITHUB_VERIFY_CONTRACT && ghChecked && !ghHandle) {
-      error("Verify your GitHub first", {
-        description: "Open your profile, verify your GitHub account, then come back to launch.",
-      });
-      window.location.href = "/profile";
-      return;
-    }
+    if (!requireGitHubVerification()) return;
 
     const id = vaultId || `vault-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     setVaultId(id);
@@ -215,6 +263,24 @@ export function CreateVaultModal() {
       return;
     }
 
+    // GitHub verification gate — must have a verified GitHub handle on-chain
+    if (GITHUB_VERIFY_CONTRACT && ghChecked && !ghHandle) {
+      error("Verify your GitHub first", {
+        description:
+          "You must verify your GitHub account on your profile page before " +
+          "launching a raise. This prevents linking a raise to someone else's " +
+          "GitHub as the source of truth.",
+        action: {
+          label: "Go verify now",
+          onClick: () => {
+            setIsOpen(false);
+            window.location.href = "/profile";
+          },
+        },
+      });
+      return;
+    }
+
     setStep("review");
   };
 
@@ -272,31 +338,38 @@ export function CreateVaultModal() {
         </DialogHeader>
 
         {/* GitHub verification gate notice */}
-        {GITHUB_VERIFY_CONTRACT && isConnected && ghChecked && !ghHandle && (
-          <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm space-y-2">
-            <div className="flex items-center gap-2 text-destructive font-medium">
-              <Github className="w-4 h-4" />
-              GitHub verification required
+        {GITHUB_VERIFY_CONTRACT && isConnected && (
+          ghChecking ? (
+            <div className="mt-4 rounded-lg border border-border/30 bg-white/[0.03] p-4 text-sm flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+              <span className="text-muted-foreground">Checking GitHub verification…</span>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              You must verify your GitHub account on-chain before launching a
-              raise — this stops people pointing a raise at someone else&apos;s
-              GitHub as their source of truth.
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={() => {
-                setIsOpen(false);
-                window.location.href = "/profile";
-              }}
-            >
-              <Github className="w-4 h-4 mr-1.5" />
-              Verify on profile
-            </Button>
-          </div>
+          ) : !ghHandle ? (
+            <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm space-y-2">
+              <div className="flex items-center gap-2 text-destructive font-medium">
+                <Github className="w-4 h-4" />
+                GitHub verification required
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                You must verify your GitHub account on-chain before launching a
+                raise — this stops people pointing a raise at someone else&apos;s
+                GitHub as their source of truth.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  setIsOpen(false);
+                  window.location.href = "/profile";
+                }}
+              >
+                <Github className="w-4 h-4 mr-1.5" />
+                Verify on profile
+              </Button>
+            </div>
+          ) : null
         )}
 
         {ghHandle && (
@@ -455,7 +528,7 @@ export function CreateVaultModal() {
               type="submit"
               variant="gradient"
               className="flex-1"
-              disabled={!kit}
+              disabled={!kit || (isConnected && ghChecked && !ghHandle)}
             >
               Create Vault
             </Button>

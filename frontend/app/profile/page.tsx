@@ -248,6 +248,20 @@ export default function ProfilePage() {
       if (got) {
         setGhVerifiedHandle(got);
         setGhPhase("verified");
+
+        // ── Sync GitHub handle to Supabase profile ──────────────────────
+        try {
+          await upsertProfile(address, {
+            github_handle: got,
+            display_name: displayName || null,
+            avatar_url: avatarUrl || null,
+          });
+        } catch (profileErr: any) {
+          // Don't fail the verification flow if Supabase update fails,
+          // but log it for debugging
+          console.warn("[profile] Could not sync GitHub handle to Supabase:", profileErr?.message);
+        }
+
         success("GitHub verified", { description: `@${got} is now linked to your wallet.` });
       } else {
         setGhPhase("idle");

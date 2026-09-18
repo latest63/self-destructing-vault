@@ -9,6 +9,7 @@ import { GENLAYER_CHAIN, getGithubVerifyContractAddress } from "@/lib/genlayer/c
 import { createClient } from "genlayer-js";
 import { useAccount } from "wagmi";
 import { upsertProject } from "@/lib/projects";
+import { success, error } from "@/lib/utils/toast";
 
 const GITHUB_VERIFY_CONTRACT = getGithubVerifyContractAddress();
 
@@ -152,17 +153,19 @@ export default function CreateProjectPage() {
       });
 
       if (updated) {
-        // If GitHub is already verified, go to dashboard
-        if (ghPhase === "verified") {
-          router.push("/dashboard");
-        } else {
-          // Otherwise stay on this page to verify
-          alert("Project created! Please complete GitHub verification to launch raises.");
-          router.push("/dashboard");
-        }
+        success("Project created successfully", {
+          description: "Your project is ready. Complete GitHub verification to launch raises.",
+        });
+        router.push("/dashboard");
+      } else {
+        error("Failed to create project", {
+          description: "No wallet connected or Supabase configuration issue.",
+        });
       }
     } catch (e: any) {
-      alert(`Error creating project: ${e?.message}`);
+      error("Error creating project", {
+        description: e?.message || "Unknown error occurred",
+      });
     } finally {
       setLoading(false);
     }

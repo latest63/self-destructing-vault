@@ -75,7 +75,7 @@ export function Navbar() {
   const menuItems: NavItem[] = [
     { label: "Explore raises", icon: Compass, action: "explore" },
     { label: "Launch a raise", icon: Rocket, action: "launch" },
-    { label: "Profile", icon: User, action: "profile" },
+    { label: "Dashboard", icon: User, action: "profile" },
   ];
 
   return (

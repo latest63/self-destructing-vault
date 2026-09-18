@@ -65,7 +65,7 @@ export function Navbar() {
         disconnect();
         break;
       case "profile":
-        router.push("/profile");
+        router.push("/dashboard");
         break;
     }
   };

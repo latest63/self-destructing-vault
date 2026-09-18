@@ -6,7 +6,7 @@ create table if not exists public.projects (
   wallet_address text not null unique,
   name text,
   github_handle text,
-  avatar_url text,
+  logo_url text,
   link text,
   profile_data jsonb,
   created_at timestamp with time zone default now() not null,

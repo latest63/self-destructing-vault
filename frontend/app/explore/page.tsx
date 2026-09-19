@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
-import { fetchRaises, type ShippingRaise } from "@/lib/raises";
+import { fetchRaises, parseRaised, formatTotal, type ShippingRaise } from "@/lib/raises";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import { Loader2, Coins, Gavel, ShieldCheck, Clock, Zap } from "lucide-react";
@@ -30,8 +30,8 @@ export default function ExplorePage() {
     // Once connected, this is where the actual deposit transaction goes.
   };
 
-  // Derive stats
-  const totalRaised = "32.05M"; // from seed data
+  // Derive stats from table data
+  const totalRaised = formatTotal(raises.reduce((sum, r) => sum + parseRaised(r.raised), 0));
   const verifiedCount = raises.filter((r) => r.verified).length;
 
   return (
@@ -92,7 +92,15 @@ export default function ExplorePage() {
             <div className="flex flex-col items-center justify-center py-24 gap-3">
               <Loader2 className="w-7 h-7 animate-spin text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                Loading open raises…
+                Loading open raises...
+              </p>
+            </div>
+          ) : raises.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
+              <Gavel className="w-7 h-7 text-muted-foreground/50" />
+              <p className="text-sm font-medium text-foreground">No open raises yet</p>
+              <p className="text-xs text-muted-foreground max-w-xs">
+                Raises will appear here once they are launched on-chain.
               </p>
             </div>
           ) : (

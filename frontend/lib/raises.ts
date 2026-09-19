@@ -1,10 +1,11 @@
 /**
  * Open raises — data source backed by Supabase.
  *
- * Uses the same Ecosystem Fund Guardian Supabase project
+ * Uses the Ecosystem Fund Guardian Supabase project
  * (ervkqbncvboqsgvwjnpq.supabase.co) with a `raises` table.
  *
- * If Supabase is not configured or unavailable, returns seed data.
+ * Reads directly from the table. No seed/fallback data: if the table
+ * is empty (or Supabase is unavailable), an empty list is returned.
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -23,106 +24,46 @@ export interface ShippingRaise {
 }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabaseKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY ||
+  "";
 
 const hasSupabase = Boolean(supabaseUrl && supabaseKey);
 
-const SEED_RAISES: ShippingRaise[] = [
-  {
-    id: "amazon",
-    company: "Amazon",
-    tagline: "Supply chain AI",
-    initials: "AM",
-    tint: "#ff9900",
-    raised: "4.20M",
-    progress: 84,
-    closes_on: "2026-11-02",
-    verified: true,
-  },
-  {
-    id: "apple",
-    company: "Apple",
-    tagline: "AI chip infrastructure",
-    initials: "AP",
-    tint: "#a3a3a3",
-    raised: "6.85M",
-    progress: 96,
-    closes_on: "2026-10-18",
-    verified: true,
-  },
-  {
-    id: "tesla",
-    company: "Tesla",
-    tagline: "AI data labeling",
-    initials: "TE",
-    tint: "#e82127",
-    raised: "3.10M",
-    progress: 71,
-    closes_on: "2026-12-05",
-    verified: false,
-  },
-  {
-    id: "google",
-    company: "Google",
-    tagline: "AI verification pipeline",
-    initials: "GO",
-    tint: "#4285f4",
-    raised: "5.40M",
-    progress: 89,
-    closes_on: "2026-11-21",
-    verified: true,
-  },
-  {
-    id: "nvidia",
-    company: "NVIDIA",
-    tagline: "Compute infrastructure",
-    initials: "NV",
-    tint: "#76b900",
-    raised: "7.60M",
-    progress: 93,
-    closes_on: "2026-10-30",
-    verified: true,
-  },
-  {
-    id: "microsoft",
-    company: "Microsoft",
-    tagline: "Azure ML compute",
-    initials: "MS",
-    tint: "#00a4ef",
-    raised: "2.95M",
-    progress: 64,
-    closes_on: "2026-12-14",
-    verified: false,
-  },
-  {
-    id: "meta",
-    company: "Meta",
-    tagline: "AR/VR research",
-    initials: "ME",
-    tint: "#0866ff",
-    raised: "4.75M",
-    progress: 78,
-    closes_on: "2026-11-09",
-    verified: true,
-  },
-  {
-    id: "spacex",
-    company: "SpaceX",
-    tagline: "Space AI systems",
-    initials: "SX",
-    tint: "#005288",
-    raised: "8.20M",
-    progress: 91,
-    closes_on: "2026-10-25",
-    verified: true,
-  },
-];
+/**
+ * Parse a human-readable "raised" value (e.g. "4.2M", "1,200", "8.5K")
+ * into a numeric amount so the explore page can sum it.
+ */
+export function parseRaised(value: string): number {
+  const s = (value || "").trim().replace(/,/g, "");
+  if (!s) return 0;
+  const m = s.match(/^([\d.]+)\s*([MKTk])?$/);
+  if (!m) return 0;
+  const n = parseFloat(m[1]);
+  if (Number.isNaN(n)) return 0;
+  const suffix = (m[2] || "").toUpperCase();
+  if (suffix === "T") return n * 1e12;
+  if (suffix === "M") return n * 1e6;
+  if (suffix === "K") return n * 1e3;
+  return n;
+}
+
+/** Format a numeric total back into a compact token string. */
+export function formatTotal(n: number): string {
+  if (n <= 0) return "0";
+  if (n >= 1e9) return (n / 1e9).toFixed(2).replace(/\.?0+$/, "") + "B";
+  if (n >= 1e6) return (n / 1e6).toFixed(2).replace(/\.?0+$/, "") + "M";
+  if (n >= 1e3) return (n / 1e3).toFixed(2).replace(/\.?0+$/, "") + "K";
+  return String(Math.round(n));
+}
 
 /**
- * Fetch open raises from Supabase, fallback to seed data.
+ * Fetch open raises from Supabase. Returns an empty array when there is
+ * nothing to show — no fallback seed data.
  */
 export async function fetchRaises(): Promise<ShippingRaise[]> {
-  if (!hasSupabase) return SEED_RAISES;
+  if (!hasSupabase) return [];
 
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -132,13 +73,12 @@ export async function fetchRaises(): Promise<ShippingRaise[]> {
       .order("progress", { ascending: false });
 
     if (error) {
-      console.warn("[raises] Supabase query failed, using seed data:", error.message);
-      return SEED_RAISES;
+      console.warn("[raises] Supabase query failed:", error.message);
+      return [];
     }
-    if (!data || data.length === 0) return SEED_RAISES;
-    return data as ShippingRaise[];
+    return (data || []) as ShippingRaise[];
   } catch (err) {
-    console.error("[raises] Supabase fetch failed, falling back to seed:", err);
-    return SEED_RAISES;
+    console.error("[raises] Supabase fetch failed:", err);
+    return [];
   }
 }

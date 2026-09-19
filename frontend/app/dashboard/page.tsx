@@ -214,9 +214,9 @@ export default function DashboardPage() {
                 <div className="max-w-2xl mx-auto">
                   <div className="bg-background border border-border rounded-xl mb-8">
                     <div className="px-5 py-4 border-b border-border/50 flex items-center gap-3">
-                      <div className="flex items-center justify-center w-11 h-11 rounded-full bg-primary/15 border border-primary/25 shrink-0">
+                      <div className="relative flex items-center justify-center w-11 h-11 rounded-full bg-primary/15 border border-primary/25 shrink-0 overflow-hidden">
                         {project.logo_url ? (
-                          <img src={project.logo_url} alt={project.name || "Logo"} className="w-6 h-6 object-cover rounded" />
+                          <img src={project.logo_url} alt={project.name || "Logo"} className="absolute inset-0 w-full h-full object-cover" />
                         ) : (
                           <Rocket className="w-5 h-5 text-primary" />
                         )}

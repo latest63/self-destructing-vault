@@ -226,7 +226,7 @@ export default function DashboardPage() {
                         <p className="text-[11px] text-muted-foreground">Your ShipGuard project</p>
                       </div>
                       <button
-                        onClick={() => router.push(`/project/${project.id}/edit`)}
+                        onClick={() => router.push(`/project/edit`)}
                         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border hover:bg-white/[0.03] transition-colors"
                       >
                         <Edit className="w-3 h-3" />
